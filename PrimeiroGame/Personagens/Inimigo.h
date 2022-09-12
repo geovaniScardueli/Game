@@ -23,13 +23,14 @@ public:
 private:
 	bool bCanMove = true;
 
+	UFUNCTION()
+	void DisableInDead();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UPROPERTY()
 	int VidaAtual = 100;
-	UPROPERTY()
-	bool bIsDead = false;
 	UPROPERTY()
 	float Stamina = 0.f;
 	UPROPERTY()
@@ -50,6 +51,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Anim Montage")
 	UAnimMontage* Atack;
+
+	UPROPERTY(EditAnywhere, Category = "Anim Montage")
+	TArray<UAnimMontage*> Montages;
 
 	UPROPERTY(EditAnywhere, Category = "Anim Montage")
 	UAnimMontage* TakeHitAnimMontage;
@@ -107,7 +111,7 @@ public:
 	void ChangeStamina(float Val);
 
 	UFUNCTION()
-	void TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation = 0);
+	int TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation = 0);
 
 	UFUNCTION()
 	void TakeDamage(int Val);
@@ -116,8 +120,21 @@ public:
 	void ChangeBlackboarValue(const FName Description, bool Val);
 
 	UFUNCTION()
+	bool GetBlackboarValue(const FName Description);
+
+	UFUNCTION()
 	AActor* GetPlayer() { return  GameMode->GetPlayer(); }
 
 	UFUNCTION()
-	void ChangeVisibilityUI(bool Val) { IsSeePlayer() && !Val ? NULL : HealthBar->SetVisibility(Val); }
+	void ChangeVisibilityUI(bool Val) { HealthBar->SetVisibility(Val); } //IsSeePlayer() && !Val ? NULL : HealthBar->SetVisibility(Val); }
+
+	UFUNCTION()
+	bool IsDead();
+
+	UFUNCTION()
+	void SensePlayer();
+
+	UFUNCTION()
+	void SpecialAtack(FVector Location);
+
 };

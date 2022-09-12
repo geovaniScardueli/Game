@@ -7,10 +7,11 @@ public class PrimeiroGame : ModuleRules
 	public PrimeiroGame(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
+
 		//AnimGraphRuntime - for solve problem 'CommonAnimationTypes.generated.h': No such file or directory
-		
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "AIModule", "GameplayTasks", "AnimGraphRuntime" });
+		//NavigationSystem - for UNavigation need this
+
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "AIModule", "GameplayTasks", "AnimGraphRuntime", "NavigationSystem" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

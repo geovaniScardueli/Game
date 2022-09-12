@@ -11,8 +11,8 @@ void UParryNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* A
 	{
 		Character->bIsInParryAnim = false;
 		Character->bIsInParryTime = false;
-		Character->ChangeMovementStatus(true);
-		Character->ChangeRotator(true);
+		//Character->ChangeMovementStatus(true);
+		//Character->ChangeRotator(true);
 		Character->OnEnterDefensePosition();
 	}
 }

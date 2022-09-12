@@ -11,5 +11,6 @@ void UStopMovin::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Ani
 	if (Ator)
 	{
 		Ator->ChangeBlackboarValue("EstaAtacando", false);
+		Ator->LaunchCharacter(Ator->GetActorForwardVector() * 700.f, true, true);
 	}
 }

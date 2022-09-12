@@ -49,12 +49,12 @@ void AInimigoPadraoAIController::BeginPlay()
 
 void AInimigoPadraoAIController::PercebeuAtores3(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (Actor->ActorHasTag("InimigoPadrao")) return;
+
 	AInimigo* Inimigo = Cast<AInimigo>(GetPawn());
 	if (Stimulus.WasSuccessfullySensed())
 	{
-		Inimigo->SetSeePlayer(true);
-		Inimigo->GetCharacterMovement()->bOrientRotationToMovement = false;
-		GetBlackboardComponent()->SetValueAsBool(TEXT("ViuPlayer"), true);
+		Inimigo->SensePlayer();
 	}
 	else
 	{

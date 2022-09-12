@@ -64,7 +64,7 @@ void AProtagonista::BeginPlay()
 	ProtagonistaAninInstance = Cast<UProtagonistaAninInstance>(GetMesh()->GetAnimInstance());
 
 	CapsuleParry->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnParryMoment);
-	GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnTakeHit);
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnTakeHit);
 	BoxExecution->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnEnterExecutionMode);
 	BoxExecution->OnComponentEndOverlap.AddDynamic(this, &AProtagonista::OnEXitExecutionMode);
 	CapsuleWeapon->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnAtack);
@@ -79,10 +79,8 @@ void AProtagonista::Tick(float DeltaTime)
 		FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InimigoFocado->GetTargetLocation());
 		Rotacao.Pitch = 0.f;
 		Rotacao.Roll = 0.f;
-		SetActorRotation(Rotacao);
 		GetController()->SetControlRotation(Rotacao);
 	}
-	
 }
 
 // Called to bind functionality to input
@@ -95,7 +93,7 @@ void AProtagonista::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAxis("OlharCimaBaixo", this, &AProtagonista::MoverMousePitch);
 	PlayerInputComponent->BindAxis("OlharEsquerdaDireita", this, &AProtagonista::MoverMouseYaw);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AProtagonista::PlayerJump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Atacar", IE_Pressed, this, &AProtagonista::Atacar);
@@ -105,6 +103,7 @@ void AProtagonista::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("DesativarOverlap", IE_Pressed, this, &AProtagonista::DesativarOverlap);
 	PlayerInputComponent->BindAction("Parry", IE_Pressed, this, &AProtagonista::ParryAtack);
 	PlayerInputComponent->BindAction("Parry", IE_Released, this, &AProtagonista::StopParry);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &AProtagonista::Dash);
 }
 
 void AProtagonista::MoveForward(float Value)
@@ -175,26 +174,48 @@ void AProtagonista::MoverMouseYaw(float Val)
 
 void AProtagonista::Atacar()
 {
-	 if (bIsAtackEnable)
+	 if (bIsAtackEnable && !GetMovementComponent()->IsFalling())
 	{
 	 	ChangeAtackStatus(false);
 	 	ChangeMovementStatus(false);
 		if (InimigoCampoVisao)
 		{
-			if (InimigoCampoVisao->GetStamina() == 100.f && bIsPerfectParry)
+			if (InimigoCampoVisao->GetStamina() == 100.f)
 			{
-				InimigoCampoVisao->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-				ChangeRotator(false);
-				PlayAnimMontage(Execution, 1, FName("ExecutionFinish"));
-				InimigoCampoVisao->TakeHit(this, 999, 100.f);
-				InimigoCampoVisao = nullptr;
-			} else if (InimigoCampoVisao->GetStamina() == 100.f || (AnguloInimigo > 140.f && !InimigoCampoVisao->IsSeePlayer()))
+				if (bIsPerfectParry)
+				{
+					InimigoCampoVisao->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+					ChangeRotator(false);
+					FVector LocationTemp = GetActorLocation();
+					SetActorLocation(InimigoCampoVisao->GetActorLocation());
+					InimigoCampoVisao->SetActorLocation(LocationTemp);
+					PlayAnimMontage(Execution, 1, FName("ExecutionFront"));
+					if (bFocoEnemigo)
+					{
+						Focar();
+					}
+					InimigoCampoVisao->TakeHit(this, 999, 100.f);
+				}
+				else
+				{
+					ChangeRotator(false);
+					ExecutionEnemy();
+					if (InimigoFocado)
+					{
+						Focar();
+					}
+				}
+			} else if (AnguloInimigo > 140.f && !InimigoCampoVisao->IsSeePlayer())
 			{
 				ChangeRotator(false);
-				ApproachEnemy();
+				ExecutionEnemy();
+				if (InimigoFocado)
+				{
+					Focar();
+				}
 			} else	
 			{
-				if (bIsPerfectParry) IndexAtack = 2;
+				if (bIsPerfectParry) IndexAtack = 3;
 				StartSequenceAtack();
 			}
 		} else
@@ -204,9 +225,61 @@ void AProtagonista::Atacar()
 	}
 }
 
+void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (AInimigo* Enemy = Cast<AInimigo>(OtherActor))
+	{
+		Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 1);
+		int Block = Enemy->TakeHit(this, AtackPower, AtackStaminaBreak, IndexAtack);
+		if (Enemy->GetStamina() == 100.f)
+		{
+			ChangeAtackStatus(true);
+		}
+		else if (Block == 1)
+		{
+			ChangeAtackStatus(false);
+			EnableDisabelOverlapWeapon(false);
+			ChangeMovementStatus(false);
+			ResetIndexAtackSequence();
+			PlayAnimMontage(TakeBlock, 1, FName("PlayerTakeBlockBla"));
+		}
+
+	}
+}
+
+void AProtagonista::ExecutionEnemy()
+{
+	FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InimigoCampoVisao->GetTargetLocation());
+	Rotacao.Pitch = 0.f;
+	Rotacao.Roll = 0.f;
+	SetActorRotation(Rotacao);
+	const bool Front = AnguloInimigo < 101.f && AnguloInimigo >= 0.f;
+	FName ExecutionName;
+	int Position = 102;
+	if (Front) {
+		Position = 102;
+		ExecutionName = FName("ExecutionFront");
+	}
+	else
+	{
+		Position = 2.f * -1;
+		ExecutionName = FName("ExecutionBack");
+	}
+	SetActorLocation(InimigoCampoVisao->GetActorLocation() + (InimigoCampoVisao->GetActorForwardVector() * Position));
+	InimigoCampoVisao->OnTakeExecution(Front, this);
+	PlayAnimMontage(Execution, 1, ExecutionName);
+}
+
+void AProtagonista::PlayerJump()
+{
+	if (!bIsAtackEnable) return;
+	Jump();
+}
+
 void AProtagonista::StartSequenceAtack()
 {
-	if (IndexAtack < 2) ChangeRotator(true);
+	if (IndexAtack < 3) ChangeRotator(true);
 	switch (IndexAtack)
 	{
 		case 0:
@@ -220,6 +293,11 @@ void AProtagonista::StartSequenceAtack()
 				break;
 			}
 		case 2:
+		{
+			PlayAnimMontage(Atack, 1, FName("ThirtAtack"));
+			break;
+		}
+		case 3:
 			{
 				PlayAnimMontage(Atack, 1, FName("AtackPerfectParry"));
 				break;
@@ -227,16 +305,52 @@ void AProtagonista::StartSequenceAtack()
 	}
 }
 
+void AProtagonista::Dash()
+{
+	if (!bIsAtackEnable) return;
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	EnableDisableOverlapMesh(false);
+	ChangeRotator(false);
+	ChangeAtackStatus(false);
+	PlayAnimMontage(Moviment, 1, FName("Dash"));
+}
+
+void AProtagonista::ResetAllStatus()
+{
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	ChangeMovementStatus(true);
+	ChangeAtackStatus(true);
+	ChangeRotator(true);
+	ResetIndexAtackSequence();
+	ResetPerfectPArry();
+	EnableDisableOverlapMesh(true);
+}
+
+void AProtagonista::VerifyEnemyLockIsDead()
+{
+	if (InimigoFocado && bFocoEnemigo && InimigoFocado->IsDead())
+	{
+		Focar();
+		InimigoCampoVisao = nullptr;
+	}
+}
+
 void AProtagonista::Focar()
 {
+	UCharacterMovementComponent* const MovementComponent = GetCharacterMovement();
 	if (bFocoEnemigo)
 	{
-		Camera->SetRelativeLocation(FVector(0.f, 0.f, 10.f));
+		//Camera->SetRelativeLocation(FVector(0.f, 0.f, 10.f));
 		bFocoEnemigo = false;
 		InimigoFocado->ChangeVisibilityUI(false);
 		InimigoFocado = nullptr;
-		//Não tem essas animações ainda
-		//Cast<UProtagonistaAninInstance>(GetMesh()->GetAnimInstance())->ChangeFocar();
+		bUseControllerRotationYaw = false;
+		Cast<UProtagonistaAninInstance>(GetMesh()->GetAnimInstance())->ChangeFocar();
+		
+		if (MovementComponent)
+		{
+			MovementComponent->bOrientRotationToMovement = true;
+		}
 		return;
 	}
 	InimigoFocado = nullptr;
@@ -252,10 +366,16 @@ void AProtagonista::Focar()
 	}
 	if (InimigoFocado)
 	{
-		Camera->SetRelativeLocation(FVector(70.f, 0.f, 40.f));
+		//Camera->SetRelativeLocation(FVector(70.f, 0.f, 40.f));
 		Cast<UProtagonistaAninInstance>(GetMesh()->GetAnimInstance())->ChangeFocar();
 		bFocoEnemigo = true;
 		InimigoFocado->ChangeVisibilityUI(true);
+		bUseControllerRotationYaw = true;
+		if (MovementComponent)
+		{
+			//deactivate this for not tilt/flic animation when move
+			MovementComponent->bOrientRotationToMovement = false;
+		}
 	}
 	BoxTarget->SetGenerateOverlapEvents(false);
 	BoxTarget->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
@@ -264,6 +384,7 @@ void AProtagonista::Focar()
 
 void AProtagonista::TeleportMoviment()
 {
+	if (!bIsAtackEnable) return;
 	APrimeiroGame* GameWord = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
 	
 	if (!GameWord->GetLocalMovimentacao().IsZero()) {
@@ -277,6 +398,9 @@ void AProtagonista::TeleportMoviment()
 		float Angulo = FMath::RadiansToDegrees(acosf(FVector::DotProduct(OwnerDirection, ActorDirection)));
 		if (Angulo < 50)
 		{
+			ChangeMovementStatus(false);
+			ChangeRotator(false);
+			ChangeAtackStatus(false);
 			bIsInTeleportMoviment = true;
 			FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameWord->GetLocalMovimentacao());
 			Rotacao.Pitch = 0.f;
@@ -296,6 +420,7 @@ void AProtagonista::ArriveTeleportMoviment()
 	Camera->SetRelativeLocation(FVector(0.f, 0.f, 10.f));
 	CastChecked<APlayerController>(Controller)->AddPitchInput(-5.f);
 }
+
 
 void AProtagonista::DesativarOverlap()
 {
@@ -322,21 +447,28 @@ void AProtagonista::OnEnterDefensePosition()
 	ProtagonistaAninInstance->SetIsInDefensePosition(bIsInDefensePosition);
 }
 
+void AProtagonista::EnableDisableOverlapMesh(bool Val)
+{
+	GetCapsuleComponent()->SetGenerateOverlapEvents(Val);
+}
+
 void AProtagonista::ParryAtack()
 {
-	
-	if (!bIsMovementEnable) return;
+	if (!bIsMovementEnable && !GetMovementComponent()->IsFalling()) return;
 	bIsMovementEnable = false;
 	bIsRotateEnable = false;
 	PlayAnimMontage(InicioParry, 1.f, FName("InicioParry"));
 	if (bIsInParryTime && InimigoCampoVisao)
 	{
 		bIsInParryTime = false;
-		InimigoCampoVisao->ParryAnimation(10.f);
+		InimigoCampoVisao->ParryAnimation(ParryStaminaBreak);
 		bIsPerfectParry = true;
 		if (InimigoCampoVisao->GetStamina() == 100.f)
 		{
-			SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InimigoCampoVisao->GetTargetLocation()));
+			FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InimigoCampoVisao->GetTargetLocation());
+			Rotacao.Pitch = 0.f;
+			Rotacao.Roll = 0.f;
+			SetActorRotation(Rotacao);
 			InimigoCampoVisao->ChangeExecuteMode(1.f);
 			PlayAnimMontage(Execution, 1.f, FName("WaitExecution"));
 			//Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 0);
@@ -356,6 +488,7 @@ void AProtagonista::StopParry()
 {
 	bIsInDefensePosition = false;
 	OnEnterDefensePosition();
+	ResetAllStatus();
 }
 
 void AProtagonista::OnParryMoment(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -420,26 +553,12 @@ void AProtagonista::OnEnterExecutionMode(UPrimitiveComponent* OverlappedComp, AA
 void AProtagonista::OnEXitExecutionMode(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (bIsPerfectParry) return;
 	if (AInimigo* Inimigo = Cast<AInimigo>(OtherActor))
 	{
 		AnguloInimigo = -1.f;
 		Inimigo->ChangeExecuteMode(0.f);
 		InimigoCampoVisao = nullptr;
-	}
-}
-
-void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (AInimigo* Enemy = Cast<AInimigo>(OtherActor))
-	{
-		Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 1);
-		Enemy->TakeHit(this, 10, 10.f, IndexAtack);
-		if (Enemy->GetStamina() == 100.f)
-		{
-			ChangeAtackStatus(true);
-		}
-		
 	}
 }
 

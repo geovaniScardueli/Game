@@ -23,8 +23,11 @@ void UAtackNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenc
 {
 	if (AProtagonista* Character = Cast<AProtagonista>(MeshComp->GetOwner()))
 	{
+		if (Character->GetCurrentMontage() && Character->GetCurrentMontage()->GetName().Equals("Atack_AM"))
+		{
+			Character->ChangeIndexAtackSequence();
+		}
 		Character->EnableDisabelOverlapWeapon(false);
-		Character->ChangeIndexAtackSequence();
 		Character->ChangeAtackStatus(true);
 		Character->ResetPerfectPArry();
 	} else if (AInimigo* Inimigo = Cast<AInimigo>(MeshComp->GetOwner()))

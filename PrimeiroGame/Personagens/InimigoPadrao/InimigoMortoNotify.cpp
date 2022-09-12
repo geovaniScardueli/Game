@@ -4,11 +4,16 @@
 #include "InimigoMortoNotify.h"
 
 #include "PrimeiroGame/Personagens/Inimigo.h"
+#include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadraoAnimInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
 
 void UInimigoMortoNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	if (AInimigo* Character = Cast<AInimigo>(MeshComp->GetOwner()))
 	{
-		Character->Destroy();
+		Cast<UInimigoPadraoAnimInstance>(Character->GetMesh()->GetAnimInstance())->CharacterIsDead();
+		Character->GetMesh()->SetSimulatePhysics(true);
+		Cast<AProtagonista>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0))->VerifyEnemyLockIsDead();
 	}
 }

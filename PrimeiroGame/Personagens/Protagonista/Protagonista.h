@@ -52,6 +52,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
 	UAnimMontage* Moviment;
 
+	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
+	UAnimMontage* TakeBlock;
+
+	UPROPERTY(EditAnywhere, Category = "GameProp")
+	int AtackPower = 10;
+
+	UPROPERTY(EditAnywhere, Category = "GameProp")
+	int AtackStaminaBreak = 10;
+
+	UPROPERTY(EditAnywhere, Category = "GameProp")
+	int ParryStaminaBreak = 10;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
 	class UCapsuleComponent* CapsuleWeapon;
 
@@ -62,13 +74,16 @@ protected:
 	class UBoxComponent* BoxExecution;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Approach")
-	void ApproachEnemy();
+	void ApproachEnemy(FVector Inimigo);
 
 	UFUNCTION(BlueprintCallable, Category = "Approach")
 	bool ApproachEnemyUpdate(float Value);
 
 	UFUNCTION(BlueprintCallable, Category = "Approach")
 	void ApproachEnemyFinished();
+
+	UFUNCTION(BlueprintCallable, Category = "Approach")
+	void ExecutionEnemy();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "MoveCamera")
 	void MoveCameraTeleport();
@@ -101,7 +116,7 @@ public:
 	void OnEnterDefensePosition();
 
 	UFUNCTION()
-	void EnableDisableOverlapMesh(bool Val) { GetMesh()->SetGenerateOverlapEvents(Val); }
+	void EnableDisableOverlapMesh(bool Val);
 
 	UFUNCTION()
 	bool ValidarEnemigoCampoVisao(AActor* Actor);
@@ -119,7 +134,7 @@ public:
 	void ChangeRotator(bool Val) { bIsRotateEnable = Val; }
 
 	UFUNCTION()
-	void ChangeIndexAtackSequence() { IndexAtack++; if (IndexAtack > 1) ResetIndexAtackSequence(); }
+	void ChangeIndexAtackSequence() { IndexAtack++; if (IndexAtack > 2) ResetIndexAtackSequence(); }
 
 	UFUNCTION()
 	void ResetIndexAtackSequence() { IndexAtack = 0; }
@@ -132,6 +147,12 @@ public:
 
 	UFUNCTION()
 	void EnabledInTeleportMoviment() { bIsInTeleportMoviment = false; }
+
+	UFUNCTION()
+	void VerifyEnemyLockIsDead();
+
+	UFUNCTION()
+	void ResetAllStatus();
 
 private:
 	UPROPERTY()
@@ -171,6 +192,9 @@ private:
 	void Atacar();
 
 	UFUNCTION()
+	void PlayerJump();
+
+	UFUNCTION()
 	void Focar();
 
 	UFUNCTION()
@@ -193,6 +217,9 @@ private:
 
 	UFUNCTION()
 	void StartSequenceAtack();
+
+	UFUNCTION()
+	void Dash();
 
 	UFUNCTION()
 	void OnParryMoment(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

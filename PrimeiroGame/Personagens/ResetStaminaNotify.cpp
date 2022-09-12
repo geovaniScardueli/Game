@@ -8,14 +8,17 @@
 
 void UResetStaminaNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Chegou no reset stamina bla"));
 	if (AInimigo* Character = Cast<AInimigo>(MeshComp->GetOwner()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Chegou no reset stamina"));
 		Character->ChangeStamina(-25.f);
 		Character->ChangeExecuteMode(0.f);
 		Character->ChangeBlackboarValue("CanMov", true);
 		Character->ChangeBlackboarValue("AtacarPlayer", false);
+		if (Character->GetBlackboarValue(FName("ViuPlayer")))
+		{
+			Character->SetSeePlayer(true);
+		}
+		Character->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Overlap);
 	} else if (AProtagonista* Player = Cast<AProtagonista>(MeshComp->GetOwner()))
 	{
 		Player->ResetPerfectPArry();

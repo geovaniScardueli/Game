@@ -34,4 +34,7 @@ public:
 
 	UFUNCTION()
 	void SetClosePlayer(bool Val);
+
+	UFUNCTION()
+	bool IsDead() { return bIsdead; }
 };

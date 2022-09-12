@@ -34,12 +34,12 @@ EBTNodeResult::Type USeguirPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	{
 
 		Cast<UInimigoPadraoAnimInstance>(Inimigo->GetMesh()->GetAnimInstance())->SetClosePlayer(false);
-		if (distance < 200.f)
+		if (distance < 250.f)
 		{
 			cont->GetBlackboardComponent()->SetValueAsBool(TEXT("IsRangeAtack"), true);
 		}
 	}
-	else if (distance < 500.f)
+	else if (distance < 100.f)
 	{
 		Cast<UInimigoPadraoAnimInstance>(Inimigo->GetMesh()->GetAnimInstance())->SetClosePlayer(true);
 		cont->GetBlackboardComponent()->SetValueAsBool(TEXT("ClosePlayer"), true);

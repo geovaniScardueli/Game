@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "PrimeiroGame/PrimeiroGame.h"
 #include "Protagonista/Protagonista.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 AInimigo::AInimigo()
@@ -29,7 +30,6 @@ AInimigo::AInimigo()
 	{
 		HealthBar->SetWidgetClass(PlayerPawnBPClass.Class);
 	}
-
 	CapsuleWeapon = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleWeapon"));
 	CapsuleWeapon->SetupAttachment(GetMesh());
 }
@@ -69,52 +69,67 @@ void AInimigo::Tick(float DeltaTime)
 	}
 }
 
-void AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation)
+int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation)
 {
 	//FString Comp = OtherComp->GetName();
 	//if (Comp.Equals(TEXT("CapsuleWeapon")))
 	//{
-	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
 	Cast<AInimigoPadraoAIController>(GetController())->StopMovement();
 	ChangeBlackboarValue("CanMov", false);
-	ChangeStamina(DamageStamina);
-	int Temp = UKismetMathLibrary::RandomInteger(100);
-	UE_LOG(LogTemp, Warning, TEXT("Random: %d Atual: %d"), Temp, BlockAtack);
-	if (BlockAtack > UKismetMathLibrary::RandomInteger(100))
+	//ChangeBlackboarValue("ViuPlayer", false);
+	if (Damage == 999)
+	{
+		bSeePlayer = false;
+		TakeDamage(Damage);
+		Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
+		PlayAnimMontage(Montages[2], 1, FName("Die"));
+		DisableInDead();
+		return 0;
+	}
+	
+	if (bSeePlayer && BlockAtack > UKismetMathLibrary::RandomInteger(100))
 	{
 		BlockAtack = 10;
-		PlayAnimMontage(TakeHitAnimMontage, 1, FName("ParryPlayer"));
-		return;
+		PlayAnimMontage(Montages[1], 1, FName("ParryPlayer"));
+		ChangeBlackboarValue("CanMov", true);
+		ChangeBlackboarValue("AtacarPlayer", true);
+		ChangeBlackboarValue("IsRangeAtack", true);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Overlap);
+		return 1;
 	}
 	BlockAtack*=2;
 	TakeDamage(Damage);
 	if (VidaAtual <= 0)
 	{
-		bIsDead = true;
 		Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
-		Cast<UInimigoPadraoAnimInstance>(GetMesh()->GetAnimInstance())->CharacterIsDead();
-		PlayAnimMontage(Die, 1, FName("Die"));
-	} else if (Stamina == 100.f)
+		PlayAnimMontage(Montages[2], 1, FName("Die"));
+		DisableInDead();
+		return 0;
+	}
+	ChangeStamina(DamageStamina);
+	if (Stamina == 100.f)
 	{
-		PlayAnimMontage(TakeHitAnimMontage, 1, FName("StaminaOver"));
+		bSeePlayer = false;
+		PlayAnimMontage(Montages[1], 1, FName("StaminaOver"));
 		if (Cast<AProtagonista>(OtherActor)->ValidarEnemigoCampoVisao(this)) ChangeExecuteMode(1.f);
 	} else
 	{
 		if (animation == 0)
 		{
-			PlayAnimMontage(TakeHitAnimMontage, 1, FName("TakeFistHit"));
+			PlayAnimMontage(Montages[1], 1, FName("TakeFistHit"));
 		}
 		else
 		{
-			PlayAnimMontage(TakeHitAnimMontage, 1, FName("TakeSecondHit"));
+			PlayAnimMontage(Montages[1], 1, FName("TakeSecondHit"));
 		}
-		
 	}
+	return 0;
 }
 
 void AInimigo::TakeDamage(int Val)
 {
-	LaunchCharacter(-GetActorForwardVector() * 50.f, true, false);
+	//LaunchCharacter(GetActorForwardVector() * -400.f, true, false);
 	VidaAtual -= Val;
 	if (VidaAtual < 0) VidaAtual = 0;
 	UInimigoPadraoWidget* Widget = Cast<UInimigoPadraoWidget>(HealthBar->GetUserWidgetObject());
@@ -130,7 +145,7 @@ void AInimigo::AtackPlayer()
 {
 	if (bCanMove)
 	{
-		PlayAnimMontage(Atack, 1, FName("AtackPlayer"));
+		PlayAnimMontage(Montages[0], 1, FName("AtackPlayer"));
 	}
 }
 
@@ -141,10 +156,10 @@ void AInimigo::ParryAnimation(float Val)
 	ChangeStamina(Val);
 	if (Stamina == 100.f)
 	{
-		PlayAnimMontage(TakeExecution, 1, FName("StaminaOver"));
+		PlayAnimMontage(Montages[3], 1, FName("StaminaOver"));
 	} else
 	{
-		PlayAnimMontage(Atack, 1, FName("Parry"));
+		PlayAnimMontage(Montages[0], 1, FName("Parry"));
 	}
 }
 
@@ -158,11 +173,8 @@ void AInimigo::OnTakeExecution(bool bIsInFront, AActor* Player2)
 	{
 		SetActorRotation(Player2->GetActorRotation());
 	}
-	PlayAnimMontage(TakeExecution, 1, FName("TakeExecution"));
-	Cast<UInimigoPadraoAnimInstance>(GetMesh()->GetAnimInstance())->CharacterIsDead();
-	ChangeExecuteMode(0.f);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
+	PlayAnimMontage(Montages[3], 1, bIsInFront ? FName("TakeExecutionFront") : FName("TakeExecution"));
+	DisableInDead();
 }
 
 void AInimigo::ChangeStamina(float Val)
@@ -181,7 +193,45 @@ void AInimigo::ChangeBlackboarValue(const FName Description, bool Val)
 	{
 		bCanMove = Val;
 	}
-	
 	Cast<AInimigoPadraoAIController>(GetController())->GetBlackboardComponent()->SetValueAsBool(Description, Val);
 }
 
+bool AInimigo::GetBlackboarValue(const FName Description)
+{
+	return Cast<AInimigoPadraoAIController>(GetController())->GetBlackboardComponent()->GetValueAsBool(Description);
+}
+
+bool AInimigo::IsDead()
+{
+	return Cast<UInimigoPadraoAnimInstance>(GetMesh()->GetAnimInstance())->IsDead();
+}
+
+void AInimigo::DisableInDead()
+{
+	ChangeVisibilityUI(false);
+	ChangeExecuteMode(0.f);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Destructible, ECR_Ignore);
+	Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
+}
+
+void AInimigo::SensePlayer()
+{
+	SetSeePlayer(true);
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	ChangeBlackboarValue(TEXT("ViuPlayer"), true);
+}
+
+void AInimigo::SpecialAtack(FVector Location)
+{
+	ChangeBlackboarValue("SpecialAtack", true);
+	SetActorLocation(Location);
+	FRotator Rotacao = FRotator(0.f, UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameMode->GetPlayer()->GetActorLocation()).Yaw, 0.f);
+	Rotacao.Pitch = 0.f;
+	Rotacao.Roll = 0.f;
+	SetActorRotation(Rotacao);
+	GetController()->SetControlRotation(Rotacao);
+	PlayAnimMontage(Montages[0], 1, FName("SpecialAtack"));
+}

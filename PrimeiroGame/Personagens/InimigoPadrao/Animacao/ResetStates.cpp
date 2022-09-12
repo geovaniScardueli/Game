@@ -13,6 +13,5 @@ void UResetStates::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* A
 	{
 		Ator->ChangeBlackboarValue("ClosePlayer", false);
 		Ator->ChangeBlackboarValue("CanMov", true);
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("finish atack")));
 	}
 }
