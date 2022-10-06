@@ -14,5 +14,6 @@ void UParryNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* A
 		//Character->ChangeMovementStatus(true);
 		//Character->ChangeRotator(true);
 		Character->OnEnterDefensePosition();
+		Character->ResetAllStatus();
 	}
 }

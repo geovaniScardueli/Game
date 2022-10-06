@@ -29,6 +29,7 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly, Category = "UI")
 	class UPlayerWidget* GameHud;
+
 	UPROPERTY()
 	AActor* Player;
 
@@ -47,6 +48,9 @@ public:
 
 	UFUNCTION()
 	void AtualizarVidaPlayer(int Value) { GameHud->AtualizarVida(Value); }
+
+	UFUNCTION()
+	void AtualizarEquilibrioPlayer(int Value) { GameHud->AtualizarEquilibrio(Value); }
 
 	UFUNCTION()
 	void PlaySoundsWord(FVector Posicao, int Sound) { PlaySounds(Posicao, Sound); }

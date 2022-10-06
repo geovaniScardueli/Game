@@ -7,9 +7,16 @@
 
 void UPlayerWidget::AtualizarVida(int Atual)
 {
-	VidaAtual->SetText(FText::AsNumber(Atual));
 	HealthBar->SetPercent(Atual / 100.f);
 	FNumberFormattingOptions Opts;
 	Opts.SetMaximumFractionalDigits(0);
 	VidaAtual->SetText(FText::AsNumber(Atual, &Opts));
+}
+
+void UPlayerWidget::AtualizarEquilibrio(int Atual)
+{
+	Equilibrio->SetPercent(Atual / 100.f);
+	FNumberFormattingOptions Opts;
+	Opts.SetMaximumFractionalDigits(0);
+	EquilibrioAtual->SetText(FText::AsNumber(Atual, &Opts));
 }

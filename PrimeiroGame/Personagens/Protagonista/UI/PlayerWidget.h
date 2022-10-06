@@ -21,8 +21,17 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* VidaAtual;
 
+	UPROPERTY(meta = (BindWidget))
+		class UProgressBar* Equilibrio;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* EquilibrioAtual;
+
 public:
 	UFUNCTION()
 	void AtualizarVida(int Atual);
+
+	UFUNCTION()
+	void AtualizarEquilibrio(int Atual);
 
 };

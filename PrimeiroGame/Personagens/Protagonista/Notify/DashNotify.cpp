@@ -8,6 +8,6 @@ void UDashNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 {
 	if (AProtagonista* Player = Cast<AProtagonista>(MeshComp->GetOwner()))
 	{
-		Player->ResetAllStatus();
+		Player->DashNotifyEnd();
 	}
 }

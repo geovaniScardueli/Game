@@ -31,6 +31,5 @@ void UProtagonistaAninInstance::NativeUpdateAnimation(float DeltaSeconds)
 	//pegar a velocidade do personamge
 	Velocidade = GetOwningActor()->GetVelocity().Size();
 	Rotacao = UKismetAnimationLibrary::CalculateDirection(GetOwningActor()->GetVelocity(), GetOwningActor()->GetActorRotation());
-	GoToRunState = Velocidade > 0.f;
 	//Cast<AProtagonista>(GetOwningActor())->GetCharacterMovement();
 }

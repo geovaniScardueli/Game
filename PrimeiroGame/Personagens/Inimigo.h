@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
 #include "PrimeiroGame/PrimeiroGame.h"
+#include "InimigoPadrao/Head/DefaulEnemyHead.h"
 
 #include "Inimigo.generated.h"
 
@@ -40,29 +41,20 @@ protected:
 	UPROPERTY()
 	APrimeiroGame* GameMode;
 
-	UPROPERTY(BlueprintReadOnly, Category="Execution")
+	UPROPERTY(BlueprintReadWrite, Category="Execution")
 	float MeshValue = 0.f;
 
 	UPROPERTY(VisibleAnywhere)
 	class UWidgetComponent* HealthBar;
 
-	UPROPERTY(EditAnywhere, Category="Anim Montage")
-	UAnimMontage* Die;
-
-	UPROPERTY(EditAnywhere, Category="Anim Montage")
-	UAnimMontage* Atack;
-
 	UPROPERTY(EditAnywhere, Category = "Anim Montage")
 	TArray<UAnimMontage*> Montages;
 
-	UPROPERTY(EditAnywhere, Category = "Anim Montage")
-	UAnimMontage* TakeHitAnimMontage;
-
-	UPROPERTY(EditAnywhere, Category = "Anim Montage")
-	UAnimMontage* TakeExecution;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
 	class UCapsuleComponent* CapsuleWeapon;
+
+	UPROPERTY(EditAnywhere, Category = "Enemy HEad")
+	TSubclassOf<ADefaulEnemyHead> HeadClass;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Mover")
 	void ComecarMover();
@@ -87,7 +79,7 @@ public:
 	void EnableDisabelOverlapWeapon(bool Val) { CapsuleWeapon->SetGenerateOverlapEvents(Val); }
 
 	UFUNCTION()
-	void ParryAnimation(float Val);
+	void ParryAnimation(float Val, FVector LocationPlayer);
 
 	UFUNCTION()
 	void ChangeExecuteMode(float Val) { MeshValue = Val; OnExecuteMode(); }
@@ -114,7 +106,10 @@ public:
 	int TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation = 0);
 
 	UFUNCTION()
-	void TakeDamage(int Val);
+	void TakeExecutionPerfectParry(FVector FowardPlayer);
+
+	UFUNCTION()
+	void LoseHealth(int Val);
 
 	UFUNCTION()
 	void ChangeBlackboarValue(const FName Description, bool Val);
@@ -136,5 +131,11 @@ public:
 
 	UFUNCTION()
 	void SpecialAtack(FVector Location);
+
+	UFUNCTION()
+	void Decapitated();
+
+	UFUNCTION()
+	void TesteTemp();
 
 };

@@ -14,6 +14,7 @@
 #include "PrimeiroGame/PrimeiroGame.h"
 #include "Protagonista/Protagonista.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "InimigoPadrao/Head/DefaulEnemyHead.h"
 
 // Sets default values
 AInimigo::AInimigo()
@@ -78,16 +79,7 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 	Cast<AInimigoPadraoAIController>(GetController())->StopMovement();
 	ChangeBlackboarValue("CanMov", false);
 	//ChangeBlackboarValue("ViuPlayer", false);
-	if (Damage == 999)
-	{
-		bSeePlayer = false;
-		TakeDamage(Damage);
-		Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
-		PlayAnimMontage(Montages[2], 1, FName("Die"));
-		DisableInDead();
-		return 0;
-	}
-	
+
 	if (bSeePlayer && BlockAtack > UKismetMathLibrary::RandomInteger(100))
 	{
 		BlockAtack = 10;
@@ -99,7 +91,7 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 		return 1;
 	}
 	BlockAtack*=2;
-	TakeDamage(Damage);
+	LoseHealth(Damage);
 	if (VidaAtual <= 0)
 	{
 		Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
@@ -127,9 +119,38 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 	return 0;
 }
 
-void AInimigo::TakeDamage(int Val)
+void AInimigo::TakeExecutionPerfectParry(FVector FowardPlayer)
 {
-	//LaunchCharacter(GetActorForwardVector() * -400.f, true, false);
+	bSeePlayer = false;
+	Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
+	//SetActorLocation(GetActorLocation() + (GetActorForwardVector() * 150 *-1));
+	PlayAnimMontage(Montages[3], 1, FName("TakeExecutionParry"));
+	LoseHealth(999);
+	DisableInDead();
+}
+
+void AInimigo::Decapitated()
+{
+	GetMesh()->HideBoneByName(FName("DEF-spine_006"), EPhysBodyOp::PBO_None);
+	FTransform Temp = GetMesh()->GetSocketTransform(FName("DEF-spine_006"));
+	AActor* Cabeca = GetWorld()->SpawnActor<ADefaulEnemyHead>(HeadClass, Temp);
+	if (Cabeca) {
+		Cast<ADefaulEnemyHead>(Cabeca)->FireHead();
+	}
+}
+
+void AInimigo::TesteTemp()
+{
+	GetMesh()->HideBoneByName(FName("DEF-spine_006"), EPhysBodyOp::PBO_None);
+	FTransform Temp = GetMesh()->GetSocketTransform(FName("DEF-spine_006"));
+	AActor* Cabeca = GetWorld()->SpawnActor<ADefaulEnemyHead>(HeadClass, Temp);
+	if (Cabeca) {
+		Cast<ADefaulEnemyHead>(Cabeca)->FireHead();
+	}
+}
+
+void AInimigo::LoseHealth(int Val)
+{
 	VidaAtual -= Val;
 	if (VidaAtual < 0) VidaAtual = 0;
 	UInimigoPadraoWidget* Widget = Cast<UInimigoPadraoWidget>(HealthBar->GetUserWidgetObject());
@@ -149,14 +170,20 @@ void AInimigo::AtackPlayer()
 	}
 }
 
-void AInimigo::ParryAnimation(float Val)
+void AInimigo::ParryAnimation(float Val, FVector LocationPlayer)
 {
 	ChangeBlackboarValue("CanMov", false);
 	EnableDisabelOverlapWeapon(false);
 	ChangeStamina(Val);
 	if (Stamina == 100.f)
 	{
-		PlayAnimMontage(Montages[3], 1, FName("StaminaOver"));
+		FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LocationPlayer);
+		Rotacao.Pitch = 0.f;
+		Rotacao.Roll = 0.f;
+		SetActorRotation(Rotacao);
+		//SetActorLocation(LocationPlayer * 200 * -1);
+		//LaunchCharacter(FVector(0, 620.f, 170.f), false, false);
+		PlayAnimMontage(Montages[3], 1, FName("TakeExecutinAwait"));
 	} else
 	{
 		PlayAnimMontage(Montages[0], 1, FName("Parry"));
@@ -235,3 +262,5 @@ void AInimigo::SpecialAtack(FVector Location)
 	GetController()->SetControlRotation(Rotacao);
 	PlayAnimMontage(Montages[0], 1, FName("SpecialAtack"));
 }
+
+

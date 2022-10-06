@@ -19,8 +19,6 @@ private:
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
-	bool GoToRunState;
-	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	float Velocidade;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	float Rotacao;
@@ -30,12 +28,17 @@ public:
 	bool bIsInAir;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	bool bIsInParry = false;
+	UPROPERTY(BlueprintReadOnly, Category = Generic)
+	bool bIsRunning = false;
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UFUNCTION()
 	void ChangeFocar() { Focar = !Focar; }
+
+	UFUNCTION()
+	void SetRunState(bool Val) { bIsRunning = Val; }
 
 	UFUNCTION()
 	void SetIsInDefensePosition(bool Val) { bIsInParry = Val; }

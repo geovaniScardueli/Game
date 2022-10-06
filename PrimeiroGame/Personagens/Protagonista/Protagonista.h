@@ -64,6 +64,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GameProp")
 	int ParryStaminaBreak = 10;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> RadialWheelClass;
+
+	UPROPERTY(VisibleInstanceOnly, Category = "UI")
+	class URadialMenu* RadialWheel;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
 	class UCapsuleComponent* CapsuleWeapon;
 
@@ -122,7 +128,7 @@ public:
 	bool ValidarEnemigoCampoVisao(AActor* Actor);
 
 	UFUNCTION()
-	void ResetPerfectPArry() { bIsPerfectParry = false; }
+	void ResetPerfectPArry();
 
 	UFUNCTION()
 	void ChangeAtackStatus(bool Val) { bIsAtackEnable = Val; }
@@ -154,6 +160,18 @@ public:
 	UFUNCTION()
 	void ResetAllStatus();
 
+	UFUNCTION()
+	void SetRunState(bool Val);
+
+	UFUNCTION()
+	void StopDash();
+
+	UFUNCTION()
+	void DisableMoviments(FName Text);
+
+	UFUNCTION()
+	void DashNotifyEnd();
+
 private:
 	UPROPERTY()
 	class UProtagonistaAninInstance* ProtagonistaAninInstance;
@@ -168,6 +186,8 @@ private:
 	UPROPERTY()
 	int VidaAtual = 100;
 	UPROPERTY()
+	int EquilibrioAtual = 0;
+	UPROPERTY()
 	float AnguloInimigo = -1.f;
 	UPROPERTY()
 	bool bIsPerfectParry = false;
@@ -181,6 +201,12 @@ private:
 	int IndexAtack = 0;
 	UPROPERTY()
 	bool bIsInTeleportMoviment = false;
+	UPROPERTY()
+	FTimerHandle TimerHandlerBalance;
+	UPROPERTY()
+	FTimerHandle TimerHandlerWheelSpecial;
+	UPROPERTY()
+	APlayerController* PlayerController;
 
 	UFUNCTION()
 	void MoveForward(float Value);
@@ -220,6 +246,27 @@ private:
 
 	UFUNCTION()
 	void Dash();
+
+	UFUNCTION()
+	void ControlBalance(int Val);
+
+	UFUNCTION()
+	void RestoreBalance();
+
+	UFUNCTION()
+	void ChangeMovementType(bool RemoveTargetLock);
+
+	UFUNCTION()
+	void Teste();
+
+	UFUNCTION()
+	void OpenSkillWhell();
+
+	UFUNCTION()
+	void CloseSkillWhell();
+
+	UFUNCTION()
+	void UpdateSkillWhell();
 
 	UFUNCTION()
 	void OnParryMoment(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
