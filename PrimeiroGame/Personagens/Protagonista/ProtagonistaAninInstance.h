@@ -30,6 +30,8 @@ public:
 	bool bIsInParry = false;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	bool bIsRunning = false;
+	UPROPERTY(BlueprintReadOnly, Category = Generic)
+	FRotator RotacaoAtack;
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
@@ -45,4 +47,7 @@ public:
 
 	UFUNCTION()
 	void SetInAir(bool Val) { bIsInAir = Val; }
+
+	UFUNCTION()
+	void SetRotationAtack(FRotator Val) { RotacaoAtack = Val; }
 };

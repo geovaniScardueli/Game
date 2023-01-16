@@ -1,20 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "InimigoPadraoAIController.h"
+#include "ArcherAIController.h"
 
 #include "BrainComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
-#include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadrao1.h"
-#include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadraoAnimInstance.h"
+#include "PrimeiroGame/Personagens/Inimigo.h"
 
-AInimigoPadraoAIController::AInimigoPadraoAIController()
+AArcherAIController::AArcherAIController()
 {
 	SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception Component")));
-	
+
 	sightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
 	sightConfig->SightRadius = 600.f;
 	sightConfig->LoseSightRadius = 1000.0f;
@@ -26,28 +25,14 @@ AInimigoPadraoAIController::AInimigoPadraoAIController()
 	GetAIPerceptionComponent()->SetDominantSense(sightConfig->GetSenseImplementation());
 }
 
-void AInimigoPadraoAIController::DisableBehaviorTree()
-{
-	GetBrainComponent()->StopLogic("Die");
-	GetPerceptionComponent()->SetSenseEnabled(sightConfig->GetSenseImplementation(),false);
-}
 
-void AInimigoPadraoAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
-{
-	AInimigoPadrao1* InimmigoPadrao = Cast<AInimigoPadrao1>(GetPawn());
-	if (InimmigoPadrao)
-	{
-		//InimmigoPadrao->TesteAiController();
-	}
-}
-
-void AInimigoPadraoAIController::BeginPlay()
+void AArcherAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	GetAIPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AInimigoPadraoAIController::PercebeuAtores3);
+	GetAIPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AArcherAIController::PercebeuActors);
 }
 
-void AInimigoPadraoAIController::PercebeuAtores3(AActor* Actor, FAIStimulus Stimulus)
+void AArcherAIController::PercebeuActors(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (Actor->ActorHasTag("InimigoPadrao")) return;
 
@@ -64,5 +49,4 @@ void AInimigoPadraoAIController::PercebeuAtores3(AActor* Actor, FAIStimulus Stim
 		Inimigo->ChangeVisibilityUI(false);
 		Inimigo->GetCharacterMovement()->bOrientRotationToMovement = true;
 	}
-	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, FString::Printf(TEXT("I see %s"),*Stimulus.Type.Name.ToString()));
 }

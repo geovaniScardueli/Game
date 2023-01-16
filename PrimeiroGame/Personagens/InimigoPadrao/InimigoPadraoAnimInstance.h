@@ -4,20 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "PrimeiroGame/Personagens/EnemyAnimInstance.h"
 #include "InimigoPadraoAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UInimigoPadraoAnimInstance : public UAnimInstance
+class PRIMEIROGAME_API UInimigoPadraoAnimInstance : public UEnemyAnimInstance
 {
 	GENERATED_BODY()
 
 protected:
 
-	UPROPERTY(BlueprintReadOnly, Category = Generic)
-	bool bIsdead = false;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	bool GoToRunState;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
@@ -28,13 +27,8 @@ protected:
 	bool bCloseplayerSpace = false;
 
 public:
-	void CharacterIsDead();
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+	virtual void SetClosePlayer(bool Val) override;
 
-	UFUNCTION()
-	void SetClosePlayer(bool Val);
-
-	UFUNCTION()
-	bool IsDead() { return bIsdead; }
 };

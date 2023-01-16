@@ -2,7 +2,7 @@
 
 
 #include "AtackPlayer.h"
-#include "InimigoPadraoAIController.h"
+#include "PrimeiroGame/Personagens/AI/EnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PrimeiroGame/Personagens/Inimigo.h"
 #include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadrao1.h"
@@ -14,7 +14,7 @@ UAtackPlayer::UAtackPlayer(FObjectInitializer const& object_initializer)
 
 EBTNodeResult::Type UAtackPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	AInimigoPadraoAIController* Cont = Cast<AInimigoPadraoAIController>(OwnerComp.GetAIOwner());
+	AEnemyAIController* Cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
 	APawn* Pawn = Cont->GetPawn();
 	Cast<AInimigo>(Pawn)->AtackPlayer();
 	Cast<AInimigo>(Pawn)->ChangeBlackboarValue("CanMov", false);

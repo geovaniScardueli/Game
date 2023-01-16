@@ -29,9 +29,9 @@ protected:
 
 public:
 	UFUNCTION()
-	void AtualizarVida(int Atual);
+	void AtualizarVida(int32 Atual);
 
 	UFUNCTION()
-	void AtualizarEquilibrio(int Atual);
+	void AtualizarEquilibrio(int32 Atual);
 
 };

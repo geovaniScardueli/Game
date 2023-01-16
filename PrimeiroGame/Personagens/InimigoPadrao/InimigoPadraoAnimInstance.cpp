@@ -7,10 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PrimeiroGame/Personagens/Inimigo.h"
 
-void UInimigoPadraoAnimInstance::CharacterIsDead()
-{
-	bIsdead = true; 
-}
 
 void UInimigoPadraoAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {

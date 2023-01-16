@@ -7,7 +7,6 @@
 
 void UResetCameraTeleportNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	Super::Notify(MeshComp, Animation);
 	if (AProtagonista* Character = Cast<AProtagonista>(MeshComp->GetOwner()))
 	{
 		Character->EnabledInTeleportMoviment();

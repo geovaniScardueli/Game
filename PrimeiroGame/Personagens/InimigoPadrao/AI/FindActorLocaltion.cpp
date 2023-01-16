@@ -3,7 +3,7 @@
 
 #include "FindActorLocaltion.h"
 
-#include "InimigoPadraoAIController.h"
+#include "PrimeiroGame/Personagens/AI/EnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -16,8 +16,8 @@ UFindActorLocaltion::UFindActorLocaltion(FObjectInitializer const& object_initia
 
 EBTNodeResult::Type UFindActorLocaltion::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	auto const cont = Cast<AInimigoPadraoAIController>(OwnerComp.GetAIOwner());
-	AInimigoPadraoAIController* Cont = Cast<AInimigoPadraoAIController>(OwnerComp.GetAIOwner());
+	auto const cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
+	AEnemyAIController* Cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
 	AInimigo* Inimigo = Cast<AInimigo>(Cont->GetPawn());
 	
 	//Inimigo->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(Inimigo->GetActorLocation(),
@@ -25,7 +25,7 @@ EBTNodeResult::Type UFindActorLocaltion::ExecuteTask(UBehaviorTreeComponent& Own
 	FVector WordLocation = Inimigo->GetActorLocation();
 	FVector Direcao;
 	
-	int valor = UKismetMathLibrary::RandomInteger(3);
+	int32 valor = UKismetMathLibrary::RandomInteger(3);
 	const float Distance = 150.f;
 	switch (valor)
 	{

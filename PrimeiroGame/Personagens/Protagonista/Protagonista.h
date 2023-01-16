@@ -8,13 +8,19 @@
 #include "GameFramework/Character.h"
 #include "Windows/AllowWindowsPlatformTypes.h"
 
-
 #include "Protagonista.generated.h"
+
+UENUM()
+enum EplayerMontages
+{
+	EPAtack, EPDefense, EPHit, EPExecution, EPMoviment, EPSpecialAtack, EPAirAtack
+};
 
 class UProtagonistaAninInstance;
 UCLASS()
 class PRIMEIROGAME_API AProtagonista : public ACharacter
 {
+
 	GENERATED_BODY()
 
 public:
@@ -37,32 +43,20 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Camera)
 	class UBoxComponent* BoxTarget; 
 	
-	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
-	UAnimMontage* Atack;
-
-	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
-	UAnimMontage* InicioParry;
-
-	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
-	UAnimMontage* TakeHit;
-
-	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
-	UAnimMontage* Execution;
-
-	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
-	UAnimMontage* Moviment;
-
-	UPROPERTY(EditAnywhere, Category="Anim Montage hit")
-	UAnimMontage* TakeBlock;
+	UPROPERTY(EditAnywhere, Category = "Anim Montage hit")
+	TArray<UAnimMontage*> ArrayMontage;
 
 	UPROPERTY(EditAnywhere, Category = "GameProp")
-	int AtackPower = 10;
+	int32 AtackPower = 10;
 
 	UPROPERTY(EditAnywhere, Category = "GameProp")
-	int AtackStaminaBreak = 10;
+	int32 AtackStaminaBreak = 10;
 
 	UPROPERTY(EditAnywhere, Category = "GameProp")
-	int ParryStaminaBreak = 10;
+	int32 ParryStaminaBreak = 10;
+
+	UPROPERTY(EditAnywhere, Category = "Spaw pro")
+	TSubclassOf<AActor> SwordBlueprintClass;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> RadialWheelClass;
@@ -100,6 +94,12 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "MoveCamera")
 	void MoveCameraTeleportFinished();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "MoveCamera")
+	void AirMoveCameraTeleport(FTransform CameraPosition);
+
+	UFUNCTION(BlueprintCallable, Category = "MoveCamera")
+	void AirMoveCameraTeleportFinished(FVector Localizacao);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -131,28 +131,28 @@ public:
 	void ResetPerfectPArry();
 
 	UFUNCTION()
-	void ChangeAtackStatus(bool Val) { bIsAtackEnable = Val; }
+	FORCEINLINE void ChangeAtackStatus(bool Val) { bIsAtackEnable = Val; }
 
 	UFUNCTION()
-	void ChangeMovementStatus(bool Val) { bIsMovementEnable = Val; }
+	FORCEINLINE void ChangeMovementStatus(bool Val) { bIsMovementEnable = Val; }
 
 	UFUNCTION()
-	void ChangeRotator(bool Val) { bIsRotateEnable = Val; }
+	FORCEINLINE void ChangeRotator(bool Val) { bIsRotateEnable = Val; }
 
 	UFUNCTION()
-	void ChangeIndexAtackSequence() { IndexAtack++; if (IndexAtack > 2) ResetIndexAtackSequence(); }
+	FORCEINLINE void ChangeIndexAtackSequence() { IndexAtack++; if (IndexAtack > 2) ResetIndexAtackSequence(); }
 
 	UFUNCTION()
-	void ResetIndexAtackSequence() { IndexAtack = 0; }
+	FORCEINLINE void ResetIndexAtackSequence() { IndexAtack = 0; }
 
 	UFUNCTION()
 	void ArriveTeleportMoviment();
 
 	UFUNCTION()
-	void MoveCamera() { MoveCameraTeleport(); };
+	void MoveCamera();
 
 	UFUNCTION()
-	void EnabledInTeleportMoviment() { bIsInTeleportMoviment = false; }
+	FORCEINLINE void EnabledInTeleportMoviment() { bIsInTeleportMoviment = false; }
 
 	UFUNCTION()
 	void VerifyEnemyLockIsDead();
@@ -172,6 +172,15 @@ public:
 	UFUNCTION()
 	void DashNotifyEnd();
 
+	UFUNCTION()
+	void DestroyActorSword() { if (SwordBlueprint) SwordBlueprint->Destroy(); };
+
+	UFUNCTION()
+	void AirTeleporPosition(FHitResult Bateu);
+
+	UFUNCTION()
+	void LevouPorrada(const bool Front);
+
 private:
 	UPROPERTY()
 	class UProtagonistaAninInstance* ProtagonistaAninInstance;
@@ -184,9 +193,9 @@ private:
 	UPROPERTY()
 	bool bIsInDefensePosition = false;
 	UPROPERTY()
-	int VidaAtual = 100;
+	int32 VidaAtual = 100;
 	UPROPERTY()
-	int EquilibrioAtual = 0;
+	int32 EquilibrioAtual = 0;
 	UPROPERTY()
 	float AnguloInimigo = -1.f;
 	UPROPERTY()
@@ -198,7 +207,7 @@ private:
 	UPROPERTY()
 	bool bIsAtackEnable = true;
 	UPROPERTY()
-	int IndexAtack = 0;
+	int32 IndexAtack = 0;
 	UPROPERTY()
 	bool bIsInTeleportMoviment = false;
 	UPROPERTY()
@@ -207,6 +216,19 @@ private:
 	FTimerHandle TimerHandlerWheelSpecial;
 	UPROPERTY()
 	APlayerController* PlayerController;
+	UPROPERTY()
+	float IndexSelectSpecialAtack;
+	UPROPERTY()
+	AActor* SwordBlueprint;
+	UPROPERTY()
+	FVector CameraEnd;
+	UPROPERTY()
+	TMap<int32, FName> AtackSequences = {
+		{0, TEXT("AtackSequence")},
+		{1, TEXT("SecondAtack")},
+		{2, TEXT("ThirtAtack")},
+		{3, TEXT("AtackPerfectParry")}
+	};
 
 	UFUNCTION()
 	void MoveForward(float Value);
@@ -248,7 +270,7 @@ private:
 	void Dash();
 
 	UFUNCTION()
-	void ControlBalance(int Val);
+	void ControlBalance(int32 Val);
 
 	UFUNCTION()
 	void RestoreBalance();
@@ -267,6 +289,9 @@ private:
 
 	UFUNCTION()
 	void UpdateSkillWhell();
+
+	UFUNCTION()
+	void SpecialAtack();
 
 	UFUNCTION()
 	void OnParryMoment(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

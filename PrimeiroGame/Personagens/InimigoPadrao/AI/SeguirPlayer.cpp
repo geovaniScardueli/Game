@@ -5,13 +5,14 @@
 
 #include <concrt.h>
 
-#include "InimigoPadraoAIController.h"
+#include "InimigoAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "PrimeiroGame/Personagens/Inimigo.h"
 #include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadraoAnimInstance.h"
+#include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
 
 USeguirPlayer::USeguirPlayer(FObjectInitializer const& object_initializer)
 {
@@ -20,7 +21,7 @@ USeguirPlayer::USeguirPlayer(FObjectInitializer const& object_initializer)
 
 EBTNodeResult::Type USeguirPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	auto const cont = Cast<AInimigoPadraoAIController>(OwnerComp.GetAIOwner());
+	auto const cont = Cast<AInimigoAIController>(OwnerComp.GetAIOwner());
 	//FVector PlayerLocation = UGameplayStatics::GetPlayerPawn(GetWorld(), 0)->GetActorLocation();
 	//UAIBlueprintHelperLibrary::SimpleMoveToLocation(cont, PlayerLocation);
 	

@@ -12,6 +12,12 @@
 
 #include "Inimigo.generated.h"
 
+UENUM()
+enum EEnemyMontages
+{
+	EEAtack, EEHit, EEDie, EEExecution, EESpecialAtack
+};
+
 UCLASS()
 class PRIMEIROGAME_API AInimigo : public ACharacter
 {
@@ -21,39 +27,40 @@ public:
 	// Sets default values for this character's properties
 	AInimigo();
 
-private:
-	bool bCanMove = true;
-
-	UFUNCTION()
-	void DisableInDead();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UPROPERTY()
-	int VidaAtual = 100;
+	int32 VidaAtual = 100;
 	UPROPERTY()
 	float Stamina = 0.f;
 	UPROPERTY()
-	int BlockAtack = 10;
+	int32 BlockAtack = 10;
 	UPROPERTY()
 	bool bSeePlayer = false;
 	UPROPERTY()
-	APrimeiroGame* GameMode;
+	APrimeiroGame* GameMode = nullptr;
+	UPROPERTY()
+	bool bCanMove = true;
+	UPROPERTY()
+	class AEnemyAIController* EnemyAIControlle;
 
 	UPROPERTY(BlueprintReadWrite, Category="Execution")
 	float MeshValue = 0.f;
 
 	UPROPERTY(VisibleAnywhere)
-	class UWidgetComponent* HealthBar;
+	class UWidgetComponent* EnemyWidgetComp;
 
-	UPROPERTY(EditAnywhere, Category = "Anim Montage")
+	UPROPERTY(VisibleAnywhere)
+	class UInimigoPadraoWidget* EnemyDefaultWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
+	TSubclassOf<UUserWidget> EnemyDefaultWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
 	TArray<UAnimMontage*> Montages;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
-	class UCapsuleComponent* CapsuleWeapon;
-
-	UPROPERTY(EditAnywhere, Category = "Enemy HEad")
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
 	TSubclassOf<ADefaulEnemyHead> HeadClass;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Mover")
@@ -65,6 +72,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category = "Mover")
 	void ComecarMoverFinished();
 
+	UFUNCTION()
+	virtual void DisableInDead();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -73,10 +83,13 @@ public:
 	void ComecarAMover();
 
 	UFUNCTION()
-	void AtackPlayer();
+	virtual void AtackPlayer() {};
 
 	UFUNCTION()
-	void EnableDisabelOverlapWeapon(bool Val) { CapsuleWeapon->SetGenerateOverlapEvents(Val); }
+	virtual void EnableDisabelOverlapWeapon(bool Val) {};
+
+	UFUNCTION()
+	virtual void PhysicsWeapon() {};
 
 	UFUNCTION()
 	void ParryAnimation(float Val, FVector LocationPlayer);
@@ -103,7 +116,7 @@ public:
 	void ChangeStamina(float Val);
 
 	UFUNCTION()
-	int TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation = 0);
+	int32 TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation = 0);
 
 	UFUNCTION()
 	void TakeExecutionPerfectParry(FVector FowardPlayer);
@@ -112,22 +125,22 @@ public:
 	void LoseHealth(int Val);
 
 	UFUNCTION()
-	void ChangeBlackboarValue(const FName Description, bool Val);
+	virtual void ChangeBlackboarValue(const FName Description, bool Val) {};
 
 	UFUNCTION()
 	bool GetBlackboarValue(const FName Description);
 
 	UFUNCTION()
-	AActor* GetPlayer() { return  GameMode->GetPlayer(); }
+	AProtagonista* GetPlayer() { return  GameMode->GetPlayer(); }
 
 	UFUNCTION()
-	void ChangeVisibilityUI(bool Val) { HealthBar->SetVisibility(Val); } //IsSeePlayer() && !Val ? NULL : HealthBar->SetVisibility(Val); }
+	void ChangeVisibilityUI(const bool Val);
 
 	UFUNCTION()
 	bool IsDead();
 
 	UFUNCTION()
-	void SensePlayer();
+	virtual void SensePlayer() {};
 
 	UFUNCTION()
 	void SpecialAtack(FVector Location);

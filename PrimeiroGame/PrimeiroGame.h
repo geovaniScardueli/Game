@@ -9,6 +9,8 @@
 
 #include "PrimeiroGame.generated.h"
 
+class AProtagonista;
+
 UCLASS()
 class PRIMEIROGAME_API APrimeiroGame : public AGameModeBase
 {
@@ -18,7 +20,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "PlaySound")
-	void PlaySounds(FVector Posicao, int Sound);
+	void PlaySounds(FVector Posicao, int32 Sound);
 
 private:
 	UPROPERTY()
@@ -31,7 +33,7 @@ private:
 	class UPlayerWidget* GameHud;
 
 	UPROPERTY()
-	AActor* Player;
+	AProtagonista* Player;
 
 public:
 	UFUNCTION()
@@ -47,14 +49,14 @@ public:
 	void ResetLocalMovimentacao() { LocalMovimentar.Set(0.f, 0.f, 0.f); }
 
 	UFUNCTION()
-	void AtualizarVidaPlayer(int Value) { GameHud->AtualizarVida(Value); }
+	void AtualizarVidaPlayer(int32 Value) { GameHud->AtualizarVida(Value); }
 
 	UFUNCTION()
-	void AtualizarEquilibrioPlayer(int Value) { GameHud->AtualizarEquilibrio(Value); }
+	void AtualizarEquilibrioPlayer(int32 Value) { GameHud->AtualizarEquilibrio(Value); }
 
 	UFUNCTION()
-	void PlaySoundsWord(FVector Posicao, int Sound) { PlaySounds(Posicao, Sound); }
+	void PlaySoundsWord(FVector Posicao, int32 Sound) { PlaySounds(Posicao, Sound); }
 	
 	UFUNCTION()
-	AActor* GetPlayer() { return Player; }
+	AProtagonista* GetPlayer() { return Player; }
 };

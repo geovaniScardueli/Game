@@ -5,7 +5,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
-void UPlayerWidget::AtualizarVida(int Atual)
+void UPlayerWidget::AtualizarVida(int32 Atual)
 {
 	HealthBar->SetPercent(Atual / 100.f);
 	FNumberFormattingOptions Opts;
@@ -13,7 +13,7 @@ void UPlayerWidget::AtualizarVida(int Atual)
 	VidaAtual->SetText(FText::AsNumber(Atual, &Opts));
 }
 
-void UPlayerWidget::AtualizarEquilibrio(int Atual)
+void UPlayerWidget::AtualizarEquilibrio(int32 Atual)
 {
 	Equilibrio->SetPercent(Atual / 100.f);
 	FNumberFormattingOptions Opts;

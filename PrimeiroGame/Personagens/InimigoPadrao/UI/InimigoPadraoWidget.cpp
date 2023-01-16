@@ -2,8 +2,8 @@
 
 
 #include "InimigoPadraoWidget.h"
-
 #include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 
 void UInimigoPadraoWidget::AtualizarVida(int Atual)
 {
@@ -19,4 +19,9 @@ void UInimigoPadraoWidget::AtualizaStamina(float Val)
 {
 	StaminaAtual->SetText(FText::AsNumber(Val));
 	StaminaBar->SetPercent(Val / 100.f);
+}
+
+void UInimigoPadraoWidget::Changevisibility(const bool Val)
+{
+	
 }

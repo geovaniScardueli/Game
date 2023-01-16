@@ -3,7 +3,7 @@
 
 #include "ClosePlayerService.h"
 
-#include "InimigoPadraoAIController.h"
+#include "PrimeiroGame/Personagens/AI/EnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PrimeiroGame/Personagens/Inimigo.h"
@@ -12,6 +12,7 @@
 #include "Runtime/NavigationSystem/Public/NavigationSystem.h"
 #include "NavigationPath.h"
 #include "Kismet/GameplayStatics.h"
+#include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
 
 
 UClosePlayerService::UClosePlayerService(const FObjectInitializer& ObjectInitializer)
@@ -29,7 +30,7 @@ void UClosePlayerService::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, ui
 {
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 	
-	auto const Cont = Cast<AInimigoPadraoAIController>(OwnerComp.GetAIOwner());
+	auto const Cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
 	AInimigo* Inimigo = Cast<AInimigo>(Cont->GetPawn());
 	float Distance = FVector::Dist(Inimigo->GetActorLocation(), Inimigo->GetPlayer()->GetActorLocation());
 	
@@ -98,8 +99,8 @@ void UClosePlayerService::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, ui
 			{
 				APawn* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 				FVector WordLocation = Player->GetActorLocation();
-				FVector DirecaoLeft = (Player->GetActorRightVector() * 150.f * -1) + WordLocation;
-				FVector DirecaoRight = (Player->GetActorRightVector() * 150.f) + WordLocation;
+				FVector DirecaoLeft = (Player->GetActorRightVector() * 270.f * -1) + WordLocation;
+				FVector DirecaoRight = (Player->GetActorRightVector() * 270.f) + WordLocation;
 
 				UNavigationSystemV1* navSys = UNavigationSystemV1::GetCurrent(GetWorld());
 				UNavigationPath* PathLeft = navSys->FindPathToLocationSynchronously(Other, Other->GetActorLocation(), DirecaoLeft);

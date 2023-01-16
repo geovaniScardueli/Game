@@ -4,7 +4,7 @@
 #include "ResetMovEnemyNotify.h"
 
 #include "Inimigo.h"
-#include "InimigoPadrao/InimigoPadraoAnimInstance.h"
+#include "PrimeiroGame/Personagens/EnemyAnimInstance.h"
 
 void UResetMovEnemyNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
@@ -16,6 +16,6 @@ void UResetMovEnemyNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 		Character->ChangeBlackboarValue("ViuPlayer", true);
 		Character->ChangeBlackboarValue("ClosePlayer", true);
 		Character->ChangeBlackboarValue("SpecialAtack", false);
-		Cast<UInimigoPadraoAnimInstance>(Character->GetMesh()->GetAnimInstance())->SetClosePlayer(true);
+		Cast<UEnemyAnimInstance>(Character->GetMesh()->GetAnimInstance())->SetClosePlayer(true);
 	}
 }

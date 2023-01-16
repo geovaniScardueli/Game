@@ -29,10 +29,10 @@ protected:
 	class USkeletalMeshComponent* SkeletalMesh;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config Head")
-	int XVelocity = 0;
+	int32 XVelocity = 0;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config Head")
-	int YVelocity = 0;
+	int32 YVelocity = 0;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Config Head")
-	int ZVelocity = 0;
+	int32 ZVelocity = 0;
 
 };

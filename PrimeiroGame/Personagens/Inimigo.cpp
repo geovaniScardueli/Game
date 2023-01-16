@@ -6,8 +6,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
-#include "InimigoPadrao/InimigoPadraoAnimInstance.h"
-#include "InimigoPadrao/AI/InimigoPadraoAIController.h"
+#include "PrimeiroGame/Personagens/EnemyAnimInstance.h"
+#include "PrimeiroGame/Personagens/AI/EnemyAIController.h"
 #include "InimigoPadrao/UI/InimigoPadraoWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -21,27 +21,33 @@ AInimigo::AInimigo()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("Health Bar"));
-	HealthBar->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	HealthBar->SetWidgetSpace(EWidgetSpace::Screen);
-	HealthBar->SetDrawAtDesiredSize(true);
-	static ConstructorHelpers::FClassFinder<UUserWidget> PlayerPawnBPClass(TEXT("/Game/Personagens/InimigoPadrao/UI/BP_HealthBarInimigo.BP_HealthBarInimigo_C"));
-	if (PlayerPawnBPClass.Succeeded())
-	{
-		HealthBar->SetWidgetClass(PlayerPawnBPClass.Class);
-	}
-	CapsuleWeapon = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleWeapon"));
-	CapsuleWeapon->SetupAttachment(GetMesh());
+	EnemyWidgetComp = CreateDefaultSubobject<UWidgetComponent>("EnemyWidget");	
+	EnemyWidgetComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	EnemyWidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+	EnemyWidgetComp->SetDrawAtDesiredSize(true);
+	
+	//static ConstructorHelpers::FClassFinder<UUserWidget> PlayerPawnBPClass(TEXT("/Game/Personagens/UI/Enemy/WG_EnemyBP.WG_EnemyBP"));
+	//if (PlayerPawnBPClass.Succeeded())
+	//{
+	//	EnemyWidgetComp->SetWidgetClass(PlayerPawnBPClass.Class);
+	//}
 }
 
 // Called when the game starts or when spawned
 void AInimigo::BeginPlay()
 {
 	Super::BeginPlay();
-	ChangeBlackboarValue("CanMov", true);
+	EnemyAIControlle = Cast<AEnemyAIController>(GetController());
+	//ChangeBlackboarValue("CanMov", true);
 	GameMode = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
-	//GetCharacterMovement()->bori
+	if (EnemyDefaultWidgetClass)
+	{
+		EnemyWidgetComp->SetWidgetClass(EnemyDefaultWidgetClass);
+	}
+	ChangeVisibilityUI(false);
+
+	//EnemyDefaultWidget->SetVisibility()
+	//EnemyWidgetComp->SetWidgetClass(EnemyDefaultWidget);
 }
 
 void AInimigo::ComecarMoverUpdate(float Value)
@@ -75,15 +81,16 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 	//FString Comp = OtherComp->GetName();
 	//if (Comp.Equals(TEXT("CapsuleWeapon")))
 	//{
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
-	Cast<AInimigoPadraoAIController>(GetController())->StopMovement();
+	//GetCapsuleComponent()->SetGenerateOverlapEvents(false);
+	GetCapsuleComponent()->BodyInstance.SetResponseToChannel(ECC_Vehicle, ECR_Ignore);
+	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
 	ChangeBlackboarValue("CanMov", false);
 	//ChangeBlackboarValue("ViuPlayer", false);
 
-	if (bSeePlayer && BlockAtack > UKismetMathLibrary::RandomInteger(100))
+	if (bSeePlayer &&  BlockAtack > UKismetMathLibrary::RandomInteger(100))
 	{
 		BlockAtack = 10;
-		PlayAnimMontage(Montages[1], 1, FName("ParryPlayer"));
+		PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("ParryPlayer"));
 		ChangeBlackboarValue("CanMov", true);
 		ChangeBlackboarValue("AtacarPlayer", true);
 		ChangeBlackboarValue("IsRangeAtack", true);
@@ -94,8 +101,8 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 	LoseHealth(Damage);
 	if (VidaAtual <= 0)
 	{
-		Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
-		PlayAnimMontage(Montages[2], 1, FName("Die"));
+		EnemyAIControlle->DisableBehaviorTree();
+		PlayAnimMontage(Montages[EEnemyMontages::EEDie], 1, FName("Die"));
 		DisableInDead();
 		return 0;
 	}
@@ -103,17 +110,17 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 	if (Stamina == 100.f)
 	{
 		bSeePlayer = false;
-		PlayAnimMontage(Montages[1], 1, FName("StaminaOver"));
+		PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("StaminaOver"));
 		if (Cast<AProtagonista>(OtherActor)->ValidarEnemigoCampoVisao(this)) ChangeExecuteMode(1.f);
 	} else
 	{
 		if (animation == 0)
 		{
-			PlayAnimMontage(Montages[1], 1, FName("TakeFistHit"));
+			PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("TakeFistHit"));
 		}
 		else
 		{
-			PlayAnimMontage(Montages[1], 1, FName("TakeSecondHit"));
+			PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("TakeSecondHit"));
 		}
 	}
 	return 0;
@@ -122,9 +129,9 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 void AInimigo::TakeExecutionPerfectParry(FVector FowardPlayer)
 {
 	bSeePlayer = false;
-	Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
+	EnemyAIControlle->DisableBehaviorTree();
 	//SetActorLocation(GetActorLocation() + (GetActorForwardVector() * 150 *-1));
-	PlayAnimMontage(Montages[3], 1, FName("TakeExecutionParry"));
+	PlayAnimMontage(Montages[EEnemyMontages::EEExecution], 1, FName("TakeExecutionParry"));
 	LoseHealth(999);
 	DisableInDead();
 }
@@ -153,21 +160,14 @@ void AInimigo::LoseHealth(int Val)
 {
 	VidaAtual -= Val;
 	if (VidaAtual < 0) VidaAtual = 0;
-	UInimigoPadraoWidget* Widget = Cast<UInimigoPadraoWidget>(HealthBar->GetUserWidgetObject());
-	Widget->AtualizarVida(VidaAtual);
+	//Cast<UInimigoPadraoWidget>(EnemyWidgetComp->GetWidgetClass())->AtualizarVida(VidaAtual);
+	//EnemyDefaultWidget->AtualizarVida(VidaAtual);
+	Cast<UInimigoPadraoWidget>(EnemyWidgetComp->GetUserWidgetObject())->AtualizarVida(VidaAtual);
 }
 
 void AInimigo::ComecarAMover()
 {
 	ComecarMover();
-}
-
-void AInimigo::AtackPlayer()
-{
-	if (bCanMove)
-	{
-		PlayAnimMontage(Montages[0], 1, FName("AtackPlayer"));
-	}
 }
 
 void AInimigo::ParryAnimation(float Val, FVector LocationPlayer)
@@ -183,10 +183,11 @@ void AInimigo::ParryAnimation(float Val, FVector LocationPlayer)
 		SetActorRotation(Rotacao);
 		//SetActorLocation(LocationPlayer * 200 * -1);
 		//LaunchCharacter(FVector(0, 620.f, 170.f), false, false);
-		PlayAnimMontage(Montages[3], 1, FName("TakeExecutinAwait"));
-	} else
+		PlayAnimMontage(Montages[EEnemyMontages::EEExecution], 1, FName("TakeExecutinAwait"));
+	} 
+	else
 	{
-		PlayAnimMontage(Montages[0], 1, FName("Parry"));
+		PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("Parry"));
 	}
 }
 
@@ -200,7 +201,7 @@ void AInimigo::OnTakeExecution(bool bIsInFront, AActor* Player2)
 	{
 		SetActorRotation(Player2->GetActorRotation());
 	}
-	PlayAnimMontage(Montages[3], 1, bIsInFront ? FName("TakeExecutionFront") : FName("TakeExecution"));
+	PlayAnimMontage(Montages[EEnemyMontages::EEExecution], 1, bIsInFront ? FName("TakeExecutionFront") : FName("TakeExecution"));
 	DisableInDead();
 }
 
@@ -210,27 +211,20 @@ void AInimigo::ChangeStamina(float Val)
 	if (Stamina >= 100.f) Stamina = 100.f;
 	if (Stamina < 0.f) Stamina = 0.f;
 	ChangeVisibilityUI(true);
-	UInimigoPadraoWidget* Widget = Cast<UInimigoPadraoWidget>(HealthBar->GetUserWidgetObject());
-	Widget->AtualizaStamina(Stamina);
+	//EnemyDefaultWidget->AtualizaStamina(Stamina);
 }
 
-void AInimigo::ChangeBlackboarValue(const FName Description, bool Val)
-{
-	if (Description.ToString().Equals("CanMov"))
-	{
-		bCanMove = Val;
-	}
-	Cast<AInimigoPadraoAIController>(GetController())->GetBlackboardComponent()->SetValueAsBool(Description, Val);
-}
+//jogar para cada classe especifica, 217 nullpointer
+
 
 bool AInimigo::GetBlackboarValue(const FName Description)
 {
-	return Cast<AInimigoPadraoAIController>(GetController())->GetBlackboardComponent()->GetValueAsBool(Description);
+	return EnemyAIControlle->GetBlackboardComponent()->GetValueAsBool(Description);
 }
 
 bool AInimigo::IsDead()
 {
-	return Cast<UInimigoPadraoAnimInstance>(GetMesh()->GetAnimInstance())->IsDead();
+	return Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance())->IsDead();
 }
 
 void AInimigo::DisableInDead()
@@ -241,14 +235,7 @@ void AInimigo::DisableInDead()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Vehicle, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Destructible, ECR_Ignore);
-	Cast<AInimigoPadraoAIController>(GetController())->DisableBehaviorTree();
-}
-
-void AInimigo::SensePlayer()
-{
-	SetSeePlayer(true);
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	ChangeBlackboarValue(TEXT("ViuPlayer"), true);
+	EnemyAIControlle->DisableBehaviorTree();
 }
 
 void AInimigo::SpecialAtack(FVector Location)
@@ -260,7 +247,10 @@ void AInimigo::SpecialAtack(FVector Location)
 	Rotacao.Roll = 0.f;
 	SetActorRotation(Rotacao);
 	GetController()->SetControlRotation(Rotacao);
-	PlayAnimMontage(Montages[0], 1, FName("SpecialAtack"));
+	PlayAnimMontage(Montages[EEnemyMontages::EESpecialAtack], 1, FName("SpecialAtack"));
 }
 
-
+void AInimigo::ChangeVisibilityUI(const bool Val)
+{
+	EnemyWidgetComp->SetVisibility(Val);
+}

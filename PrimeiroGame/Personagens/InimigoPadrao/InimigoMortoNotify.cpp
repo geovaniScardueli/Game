@@ -7,13 +7,23 @@
 #include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadraoAnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
+#include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadrao1.h"
+#include "PrimeiroGame/Personagens/Archer/Archer.h"
+#include "PrimeiroGame/Personagens/Archer/ArcherAnimInstance.h"
 
 void UInimigoMortoNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	if (AInimigo* Character = Cast<AInimigo>(MeshComp->GetOwner()))
+	if (AInimigoPadrao1* InimigoPadrao = Cast<AInimigoPadrao1>(MeshComp->GetOwner()))
 	{
-		Cast<UInimigoPadraoAnimInstance>(Character->GetMesh()->GetAnimInstance())->CharacterIsDead();
-		Character->GetMesh()->SetSimulatePhysics(true);
-		Cast<AProtagonista>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0))->VerifyEnemyLockIsDead();
+		InimigoPadrao->PhysicsWeapon();
+		Cast<UInimigoPadraoAnimInstance>(InimigoPadrao->GetMesh()->GetAnimInstance())->CharacterIsDead();
+		InimigoPadrao->GetMesh()->SetSimulatePhysics(true);
+		InimigoPadrao->GetPlayer()->VerifyEnemyLockIsDead();
+	}
+	else if (AArcher* Archer = Cast<AArcher>(MeshComp->GetOwner()))
+	{
+		Cast<UArcherAnimInstance>(InimigoPadrao->GetMesh()->GetAnimInstance())->CharacterIsDead();
+		Archer->GetMesh()->SetSimulatePhysics(true);
+		Archer->GetPlayer()->VerifyEnemyLockIsDead();
 	}
 }

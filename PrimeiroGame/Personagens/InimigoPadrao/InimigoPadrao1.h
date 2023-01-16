@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 
-#include "BehaviorTree/BlackboardComponent.h"
-#include "GameFramework/Character.h"
 #include "PrimeiroGame/Personagens/Inimigo.h"
 
 #include "InimigoPadrao1.generated.h"
@@ -21,10 +19,24 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
+	UFUNCTION()
 	virtual void BeginPlay() override;
 
-	//UPROPERTY(VisibleAnywhere)
-	//class UWidgetComponent* HealthBar;
+	UPROPERTY()
+	class AInimigoAIController* InimigoPadraoAIControlle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
+	class UCapsuleComponent* CapsuleWeapon;
+
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
+	TSubclassOf<AActor> SwordClass;
+
+	UPROPERTY(BlueprintReadWrite)
+	class AActor* SwordBP;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Die")
+	void EnablePhysicsWeapon();
+
 
 public:	
 	// Called every frame
@@ -35,6 +47,12 @@ public:
 
 	UFUNCTION()
 	void TesteAiController();
+
+	virtual void EnableDisabelOverlapWeapon(bool Val) override { CapsuleWeapon->SetGenerateOverlapEvents(Val); }
+	virtual void AtackPlayer() override;
+	virtual void ChangeBlackboarValue(const FName Description, bool Val) override;
+	virtual void SensePlayer() override;
+	virtual void PhysicsWeapon() override;
 
 private:
 	bool bAndou = true;

@@ -4,7 +4,7 @@
 #include "TeleportSpecialAtack.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "InimigoPadraoAIController.h"
+#include "PrimeiroGame/Personagens/AI/EnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Runtime/NavigationSystem/Public/NavigationSystem.h"
 #include "NavigationPath.h"
@@ -23,7 +23,7 @@ EBTNodeResult::Type UTeleportSpecialAtack::ExecuteTask(UBehaviorTreeComponent& O
 
 	if (Player)
 	{
-		auto const cont = Cast<AInimigoPadraoAIController>(OwnerComp.GetAIOwner());
+		auto const cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
 		
 		FVector WordLocation = Player->GetActorLocation();
 		FVector Direcao;

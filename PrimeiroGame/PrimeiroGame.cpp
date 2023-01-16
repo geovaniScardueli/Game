@@ -7,6 +7,7 @@
 #include "Modules/ModuleManager.h"
 #include "Personagens/Protagonista/Protagonista.h"
 #include "Personagens/Protagonista/UI/PlayerWidget.h"
+#include "Personagens/Protagonista/Protagonista.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, PrimeiroGame, "PrimeiroGame");
 
@@ -25,6 +26,6 @@ void APrimeiroGame::BeginPlay()
 	{
 		GameHud->AddToViewport();	
 	}
-	Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	Player = Cast<AProtagonista>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 }
 

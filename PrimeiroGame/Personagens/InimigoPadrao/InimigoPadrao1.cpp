@@ -3,8 +3,11 @@
 
 #include "InimigoPadrao1.h"
 
-#include "AI/InimigoPadraoAIController.h"
+#include "AI/InimigoAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
+#include "PrimeiroGame/Personagens/InimigoPadrao/AI/InimigoAIController.h"
 
 // Sets default values
 AInimigoPadrao1::AInimigoPadrao1()
@@ -14,6 +17,9 @@ AInimigoPadrao1::AInimigoPadrao1()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	CapsuleWeapon = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleWeapon"));
+	CapsuleWeapon->SetupAttachment(GetMesh());
 	
 }
 
@@ -21,6 +27,14 @@ AInimigoPadrao1::AInimigoPadrao1()
 void AInimigoPadrao1::BeginPlay()
 {
 	Super::BeginPlay();
+	InimigoPadraoAIControlle = Cast<AInimigoAIController>(GetController());
+	GetMesh()->HideBoneByName(FName("DEF-Bone"), EPhysBodyOp::PBO_None);
+	SwordBP = GetWorld()->SpawnActor<AActor>(SwordClass, GetMesh()->GetSocketTransform(FName("DEF-Bone")));
+
+	SwordBP->AttachToComponent(GetMesh(),
+		FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true),
+		FName("WeaponSocket"));
+
 }
 
 // Called every frame
@@ -42,11 +56,47 @@ void AInimigoPadrao1::TesteAiController()
 	GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Red, TEXT("entrou no ai controleer no inimigo"));
 	if (bAndou)
 	{
-		Cast<AInimigoPadraoAIController>(GetController())->MoveToLocation(FVector(740.f, -490.f,598.f));
+		Cast<AInimigoAIController>(GetController())->MoveToLocation(FVector(740.f, -490.f,598.f));
 	} else
 	{
-		Cast<AInimigoPadraoAIController>(GetController())->MoveToLocation(FVector(740.f, 320.f,598.f));
+		Cast<AInimigoAIController>(GetController())->MoveToLocation(FVector(740.f, 320.f,598.f));
 	}
 	bAndou = !bAndou;
+}
+
+void AInimigoPadrao1::AtackPlayer()
+{
+	if (bCanMove)
+	{
+		if (FVector::Dist(GetActorLocation(), GetPlayer()->GetActorLocation()) < 100.f)
+		{
+			PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("CloseAtack"));
+		}
+		else 
+		{
+			PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("AtackPlayer"));
+		}
+	}
+}
+
+void AInimigoPadrao1::ChangeBlackboarValue(const FName Description, bool Val)
+{
+	if (Description.ToString().Equals("CanMov"))
+	{
+		bCanMove = Val;
+	}
+	InimigoPadraoAIControlle->GetBlackboardComponent()->SetValueAsBool(Description, Val);
+}
+
+void AInimigoPadrao1::SensePlayer()
+{
+	SetSeePlayer(true);
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	ChangeBlackboarValue(TEXT("ViuPlayer"), true);
+}
+
+void AInimigoPadrao1::PhysicsWeapon()
+{
+	EnablePhysicsWeapon();
 }
 

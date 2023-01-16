@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/TextBlock.h"
 
 #include "InimigoPadraoWidget.generated.h"
 
@@ -17,23 +16,27 @@ class PRIMEIROGAME_API UInimigoPadraoWidget : public UUserWidget
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* HealthBar;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UProgressBar* HealthBar = nullptr;
 
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* VidaAtual;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UTextBlock* VidaAtual = nullptr;
 
-	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* StaminaBar;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UProgressBar* StaminaBar = nullptr;
 
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* StaminaAtual;
+	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	class UTextBlock* StaminaAtual = nullptr;
 
 public:
+
 	UFUNCTION()
-	void AtualizarVida(int Atual);
+	void AtualizarVida(int32 Atual);
 
 	UFUNCTION()
 	void AtualizaStamina(float Val);
+
+	UFUNCTION()
+	void Changevisibility(const bool Val);
 	
 };

@@ -109,7 +109,9 @@ void AProtagonista::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Dash/Run", IE_Released, this, &AProtagonista::StopDash);
 	PlayerInputComponent->BindAction("SkillWheel", IE_Pressed, this, &AProtagonista::OpenSkillWhell);
 	PlayerInputComponent->BindAction("SkillWheel", IE_Released, this, &AProtagonista::CloseSkillWhell);
+	PlayerInputComponent->BindAction("SpecialAtack", IE_Pressed, this, &AProtagonista::SpecialAtack);
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AProtagonista::Teste);
+	
 }
 
 void AProtagonista::MoveForward(float Value)
@@ -178,10 +180,17 @@ void AProtagonista::MoverMouseYaw(float Val)
 
 void AProtagonista::Atacar()
 {
-	 if (bIsAtackEnable && !GetMovementComponent()->IsFalling())
+	if (bIsAtackEnable)
 	{
-	 	ChangeAtackStatus(false);
-	 	//ChangeMovementStatus(false);
+		ChangeAtackStatus(false);
+		if (GetMovementComponent()->IsFalling())
+		{
+			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPAirAtack], 1, FName("StartAirAtack"));
+			return;
+		}
+		 
+		//ChangeMovementStatus(false);
 		if (InimigoCampoVisao)
 		{
 			if (InimigoCampoVisao->GetStamina() == 100.f)
@@ -190,15 +199,17 @@ void AProtagonista::Atacar()
 				{
 					ChangeRotator(false);
 					FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InimigoCampoVisao->GetTargetLocation());
+					FRotator Rotacao4 = FRotator(0.f, 0.f, Rotacao.Pitch * -1);
 					Rotacao.Pitch = 0.f;
 					Rotacao.Roll = 0.f;
 					SetActorRotation(Rotacao);
 					FVector LocationTemp = GetActorLocation();
-					PlayAnimMontage(Execution, 1, FName("ExecutionParry"));
+					PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1, FName("ExecutionParry"));
 					if (bFocoEnemigo)
 					{
 						Focar();
 					}
+					Cast<UProtagonistaAninInstance>(GetMesh()->GetAnimInstance())->SetRotationAtack(Rotacao4);
 					InimigoCampoVisao->TakeExecutionPerfectParry(GetActorForwardVector());
 				}
 				else
@@ -210,7 +221,8 @@ void AProtagonista::Atacar()
 						Focar();
 					}
 				}
-			} else if (AnguloInimigo > 140.f && !InimigoCampoVisao->IsSeePlayer())
+			}
+			else if (AnguloInimigo > 140.f && !InimigoCampoVisao->IsSeePlayer())
 			{
 				ChangeRotator(false);
 				ExecutionEnemy();
@@ -218,15 +230,19 @@ void AProtagonista::Atacar()
 				{
 					Focar();
 				}
-			} else	
+			}
+			else
 			{
 				if (bIsPerfectParry) IndexAtack = 3;
 				StartSequenceAtack();
 			}
-		} else
+		}
+		else
 		{
 			StartSequenceAtack();
 		}
+
+		 
 	}
 }
 
@@ -238,7 +254,7 @@ void AProtagonista::ExecutionEnemy()
 	SetActorRotation(Rotacao);
 	const bool Front = AnguloInimigo < 101.f && AnguloInimigo >= 0.f;
 	FName ExecutionName;
-	int Position = 102;
+	int32 Position = 102;
 	if (Front) {
 		Position = 102;
 		ExecutionName = FName("ExecutionFront");
@@ -251,40 +267,19 @@ void AProtagonista::ExecutionEnemy()
 	const FVector EnemyLocation = InimigoCampoVisao->GetActorLocation() + (InimigoCampoVisao->GetActorForwardVector() * Position);
 	InimigoCampoVisao->OnTakeExecution(Front, this);
 	SetActorLocation(EnemyLocation);
-	PlayAnimMontage(Execution, 1, ExecutionName);
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1, ExecutionName);
 }
 
 void AProtagonista::StartSequenceAtack()
 {
 	if (GetCharacterMovement()->MaxWalkSpeed > 600)
 	{
-		PlayAnimMontage(Atack, 1, FName("RunAtack"));
+		PlayAnimMontage(ArrayMontage[EplayerMontages::EPAtack], 1, FName("RunAtack"));
 		return;
 	}
 	if (IndexAtack < 3) ChangeRotator(true);
-		switch (IndexAtack)
-		{
-		case 0:
-		{
-			PlayAnimMontage(Atack, 1, FName("AtackSequence"));
-			break;
-		}
-		case 1:
-		{
-			PlayAnimMontage(Atack, 1, FName("SecondAtack"));
-			break;
-		}
-		case 2:
-		{
-			PlayAnimMontage(Atack, 1, FName("ThirtAtack"));
-			break;
-		}
-		case 3:
-		{
-			PlayAnimMontage(Atack, 1, FName("AtackPerfectParry"));
-			break;
-		}
-	}
+
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPAtack], 1, AtackSequences[IndexAtack]);
 }
 
 void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -292,8 +287,7 @@ void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 {
 	if (AInimigo* Enemy = Cast<AInimigo>(OtherActor))
 	{
-		Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 1);
-		int Block = Enemy->TakeHit(this, AtackPower, AtackStaminaBreak, IndexAtack);
+		int32 Block = Enemy->TakeHit(this, AtackPower, AtackStaminaBreak, IndexAtack);
 		if (Enemy->GetStamina() == 100.f)
 		{
 			ChangeAtackStatus(true);
@@ -304,7 +298,11 @@ void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 			EnableDisabelOverlapWeapon(false);
 			ChangeMovementStatus(false);
 			ResetIndexAtackSequence();
-			PlayAnimMontage(TakeBlock, 1, FName("PlayerTakeBlockBla"));
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPDefense], 1, FName("PlayerTakeBlock"));
+		}
+		else
+		{
+			Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 1);
 		}
 
 	}
@@ -321,11 +319,10 @@ void AProtagonista::Dash()
 	if (!bIsAtackEnable) return;
 
 	DisableMoviments(FName("Dash"));
-	PlayAnimMontage(Moviment, 1, FName("Dash"));
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPMoviment], 1, FName("Dash"));
 	GetCharacterMovement()->MaxWalkSpeed = 1200;
 	FRotator Temp1 = GetActorRotation();
 	FRotator Temp2 = UKismetMathLibrary::Conv_VectorToRotator(GetLastMovementInputVector());
-	UE_LOG(LogTemp, Warning, TEXT("Yaw1: %f, Yaw2: %f, 1-2: %f, 2-1: %f"), Temp1.Yaw, Temp2.Yaw, Temp1.Yaw - Temp2.Yaw, Temp2.Yaw - Temp1.Yaw);
 	SetActorRotation(Temp2);
 }
 
@@ -372,6 +369,7 @@ void AProtagonista::DisableMoviments(FName Text)
 
 void AProtagonista::ResetAllStatus()
 {
+	Cast<UProtagonistaAninInstance>(GetMesh()->GetAnimInstance())->SetRotationAtack(FRotator(0.f, 0.f, 0.f));
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	ChangeMovementStatus(true);
 	ChangeAtackStatus(true);
@@ -456,45 +454,6 @@ void AProtagonista::ChangeMovementType(bool RemoveTargetLock)
 	}
 }
 
-void AProtagonista::TeleportMoviment()
-{
-	if (!bIsAtackEnable) return;
-	APrimeiroGame* GameWord = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
-	
-	if (!GameWord->GetLocalMovimentacao().IsZero()) {
-		FVector OwnerDirection = Camera->GetForwardVector();
-		FVector ActorDirection = GameWord->GetLocalMovimentacao() - Camera->GetComponentLocation();
-		// Normalize vectors
-		OwnerDirection.Normalize();
-		ActorDirection.Normalize();
-
-		// Calculate angle
-		float Angulo = FMath::RadiansToDegrees(acosf(FVector::DotProduct(OwnerDirection, ActorDirection)));
-		if (Angulo < 50)
-		{
-			ChangeMovementStatus(false);
-			ChangeRotator(false);
-			ChangeAtackStatus(false);
-			bIsInTeleportMoviment = true;
-			FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameWord->GetLocalMovimentacao());
-			Rotacao.Pitch = 0.f;
-			Rotacao.Roll = 0.f;
-			SetActorRotation(Rotacao);
-			GetController()->SetControlRotation(Rotacao);
-			PlayAnimMontage(Moviment, 1.f, FName("ThrowTeleport"));	
-		}
-	}
-}
-
-void AProtagonista::ArriveTeleportMoviment()
-{
-	APrimeiroGame* GameWord = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
-	PlayAnimMontage(Moviment, 1.f, FName("TeleportArrive"));
-	SetActorLocation(GameWord->GetLocalMovimentacao());
-	Camera->SetRelativeLocation(FVector(0.f, 0.f, 10.f));
-	PlayerController->AddPitchInput(-5.f);
-}
-
 
 void AProtagonista::DesativarOverlap()
 {
@@ -531,7 +490,7 @@ void AProtagonista::ParryAtack()
 	if (!bIsMovementEnable && !GetMovementComponent()->IsFalling()) return;
 	bIsMovementEnable = false;
 	bIsRotateEnable = false;
-	PlayAnimMontage(InicioParry, 1.f, FName("InicioParry"));
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPDefense], 1.f, FName("InicioParry"));
 	if (bIsInParryTime && InimigoCampoVisao)
 	{
 		bIsInParryTime = false;
@@ -544,12 +503,12 @@ void AProtagonista::ParryAtack()
 			Rotacao.Roll = 0.f;
 			SetActorRotation(Rotacao);
 			InimigoCampoVisao->ChangeExecuteMode(1.f);
-			PlayAnimMontage(Execution, 1.f, FName("WaitExecution"));
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1.f, FName("WaitExecution"));
 			//Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 0);
 		}
 		else
 		{
-			PlayAnimMontage(InicioParry, 1.f, FName("PerfectParry"));
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPDefense], 1.f, FName("PerfectParry"));
 			InimigoCampoVisao->LaunchCharacter(-InimigoCampoVisao->GetActorForwardVector() * 700.f, true, true);
 		}
 	}
@@ -594,17 +553,28 @@ void AProtagonista::OnTakeHit(UPrimitiveComponent* OverlappedComp, AActor* Other
 		GameMode->AtualizarVidaPlayer(VidaAtual -= 10);
 		if (EquilibrioAtual == 100)
 		{
-			PlayAnimMontage(InicioParry, 1.f, TEXT("BalanceOut"));
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1.f, TEXT("BalanceOut"));
 		}
 		else
 		{
-			PlayAnimMontage(TakeHit, 1.f, TEXT("TakeHit"));
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPHit], 1.f, TEXT("TakeHit"));
 
 		}
 	}
 }
 
-void AProtagonista::ControlBalance(int Val)
+void AProtagonista::LevouPorrada(const bool Front)
+{
+	APrimeiroGame* GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
+	GameMode->AtualizarVidaPlayer(VidaAtual -= 5);
+	ControlBalance(5);
+	if (Front)
+		PlayAnimMontage(ArrayMontage[EplayerMontages::EPHit], 1.f, TEXT("TakeHitFront"));
+	else
+		PlayAnimMontage(ArrayMontage[EplayerMontages::EPHit], 1.f, TEXT("TakeHitBack"));
+}
+
+void AProtagonista::ControlBalance(int32 Val)
 {
 	DisableMoviments(FName("All"));
 	EquilibrioAtual += Val;
@@ -612,7 +582,7 @@ void AProtagonista::ControlBalance(int Val)
 	{
 		EquilibrioAtual = 100;
 		LaunchCharacter(GetActorForwardVector() * 200.f * -1, true, false);
-		PlayAnimMontage(InicioParry, 1.f, TEXT("BalanceOut"));
+		PlayAnimMontage(ArrayMontage[EplayerMontages::EPDefense], 1.f, TEXT("BalanceOut"));
 	}
 	APrimeiroGame* GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->AtualizarEquilibrioPlayer(EquilibrioAtual);
@@ -693,18 +663,68 @@ void AProtagonista::ApproachEnemyFinished()
 	Rotacao.Roll = 0.f;
 	SetActorRotation(Rotacao);
 	InimigoCampoVisao->OnTakeExecution(AnguloInimigo < 101.f && AnguloInimigo >= 0.f, this);
-	PlayAnimMontage(Execution, 1, FName("ExecutionBack"));
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1, FName("ExecutionBack"));
 }
 
-bool AProtagonista::MoveCameraTeleportUpdate(float Value)
-{
-	Camera->SetRelativeLocation(FVector(Value, 0.f, 10.f));
-	return true;
-}
 
 void AProtagonista::MoveCameraTeleportFinished()
 {
 	ArriveTeleportMoviment();
+}
+
+bool AProtagonista::MoveCameraTeleportUpdate(float Value)
+{
+	Camera->SetRelativeLocation(FVector(Value, 0.f, 20.f));
+	return true;
+}
+
+void AProtagonista::MoveCamera()
+{
+	MoveCameraTeleport();
+	ResetAllStatus();
+}
+
+void AProtagonista::TeleportMoviment()
+{
+	if (!bIsAtackEnable) return;
+	APrimeiroGame* GameWord = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
+
+	if (!GameWord->GetLocalMovimentacao().IsZero()) {
+		FVector OwnerDirection = Camera->GetForwardVector();
+		FVector ActorDirection = GameWord->GetLocalMovimentacao() - Camera->GetComponentLocation();
+		// Normalize vectors
+		OwnerDirection.Normalize();
+		ActorDirection.Normalize();
+
+		// Calculate angle
+		float Angulo = FMath::RadiansToDegrees(acosf(FVector::DotProduct(OwnerDirection, ActorDirection)));
+		if (Angulo < 50)
+		{
+			ChangeMovementStatus(false);
+			ChangeRotator(false);
+			ChangeAtackStatus(false);
+			bIsInTeleportMoviment = true;
+			FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameWord->GetLocalMovimentacao());
+			Rotacao.Pitch = 0.f;
+			Rotacao.Roll = 0.f;
+			SetActorRotation(Rotacao);
+			GetController()->SetControlRotation(Rotacao);
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPMoviment], 1.f, FName("ThrowTeleport"));
+		}
+	}
+}
+
+void AProtagonista::ArriveTeleportMoviment()
+{
+	GetMesh()->SetVisibility(false);
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPMoviment], 1.f, FName("TeleportArrive"));
+	APrimeiroGame* GameWord = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
+	SetActorLocation(GameWord->GetLocalMovimentacao());
+	Camera->SetRelativeLocation(FVector(0.f, 0.f, 10.f));
+	PlayerController->AddPitchInput(-5.f);
+
+	//SwordBlueprint = GetWorld()->SpawnActor<AActor>(SwordBlueprintClass, GetMesh()->GetSocketTransform(FName("DEF-hand_R")));
+	SwordBlueprint = GetWorld()->SpawnActor<AActor>(SwordBlueprintClass, GetActorLocation(), GetActorRotation());
 }
 
 void AProtagonista::OpenSkillWhell()
@@ -724,12 +744,10 @@ void AProtagonista::OpenSkillWhell()
 		if (GetWorldTimerManager().TimerExists(TimerHandlerWheelSpecial) && GetWorldTimerManager().IsTimerPaused(TimerHandlerWheelSpecial))
 		{
 			GetWorldTimerManager().UnPauseTimer(TimerHandlerWheelSpecial);
-			UE_LOG(LogTemp, Warning, TEXT("resume timer"));
 		}
 		else
 		{
 			GetWorldTimerManager().SetTimer(TimerHandlerWheelSpecial, this, &AProtagonista::UpdateSkillWhell, 0.1f, true, 0.1f);
-			UE_LOG(LogTemp, Warning, TEXT("Criou timer"));
 		}
 	}
 }
@@ -737,6 +755,7 @@ void AProtagonista::OpenSkillWhell()
 void AProtagonista::CloseSkillWhell()
 {
 	GetWorldTimerManager().PauseTimer(TimerHandlerWheelSpecial);
+	IndexSelectSpecialAtack = RadialWheel->GetSelectSpecialAtack();
 	RadialWheel->RemoveFromParent();
 	PlayerController->SetShowMouseCursor(false);
 	PlayerController->SetIgnoreLookInput(false);
@@ -748,23 +767,75 @@ void AProtagonista::UpdateSkillWhell()
 	RadialWheel->PosicaoMouseAtual(PlayerController);
 }
 
+void AProtagonista::SpecialAtack()
+{
+	if (IndexSelectSpecialAtack == 0.f)
+	{
+		DisableMoviments(FName("All"));
+		PlayAnimMontage(ArrayMontage[EplayerMontages::EPSpecialAtack], 1, FName("SpecialAtack1"));
+	}
+}
+
 void AProtagonista::Teste()
 {
-	if (RadialWheel == nullptr)
+	//if (RadialWheel == nullptr)
+	//{
+	//	RadialWheel = Cast<URadialMenu>(CreateWidget(GetWorld(), RadialWheelClass));
+	//	if (IsValid(RadialWheel))
+	//	{
+	//		RadialWheel->AddToViewport();
+	//		PlayerController->SetShowMouseCursor(true);
+	//		PlayerController->SetIgnoreLookInput(true);
+	//		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(PlayerController, RadialWheel, EMouseLockMode::DoNotLock, false);
+	//		GetWorldTimerManager().SetTimer(TimerHandlerWheelSpecial, this, &AProtagonista::RestoreBalance, 0.2f, true, 3.f);
+	//	}
+	//}
+	//else
+	//{
+	//	
+	//}
+	if (InimigoCampoVisao)
 	{
-		RadialWheel = Cast<URadialMenu>(CreateWidget(GetWorld(), RadialWheelClass));
-		if (IsValid(RadialWheel))
-		{
-			RadialWheel->AddToViewport();
-			//todo colocar o cursor no meio da tela
-			PlayerController->SetShowMouseCursor(true);
-			PlayerController->SetIgnoreLookInput(true);
-			UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(PlayerController, RadialWheel, EMouseLockMode::DoNotLock, false);
-			GetWorldTimerManager().SetTimer(TimerHandlerWheelSpecial, this, &AProtagonista::RestoreBalance, 0.2f, true, 3.f);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("focadp"));
+		InimigoCampoVisao->AtackPlayer();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("saiu"));
+}
+
+void AProtagonista::AirTeleporPosition(FHitResult Bateu)
+{
+	CameraEnd = Bateu.Location;
+	if (CameraEnd.IsZero())
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		return;
+	} else if (InimigoFocado)
+	{
+		AirMoveCameraTeleportFinished(InimigoFocado->GetActorLocation() + (GetActorForwardVector() * 20.f * -1.f));
+		return;
+	}
+	FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), CameraEnd);
+	Rotacao.Pitch = 0.f;
+	Rotacao.Roll = 0.f;
+	GetController()->SetControlRotation(Rotacao);
+	if (AInimigo* Enemy = Cast<AInimigo>(Bateu.GetActor()))
+	{
+		CameraEnd.Z = Enemy->GetActorLocation().Z;
 	}
 	else
 	{
-		
+		CameraEnd.Z += 100.f;
 	}
+	AirMoveCameraTeleport(Camera->GetComponentTransform());
+}
+
+void AProtagonista::AirMoveCameraTeleportFinished(FVector Localizacao)
+{
+	if (Localizacao.IsZero())
+	{
+		Localizacao = CameraEnd;
+	}
+	SetActorLocation(Localizacao);
+	PlayAnimMontage(ArrayMontage[EplayerMontages::EPAirAtack], 1, FName("AirAtackEnd"));
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
