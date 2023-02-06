@@ -73,6 +73,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
 	class UBoxComponent* BoxExecution;
 
+	//---------------------------------deletar
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Approach")
 	void ApproachEnemy(FVector Inimigo);
 
@@ -81,6 +83,11 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Approach")
 	void ApproachEnemyFinished();
+
+	UFUNCTION(BlueprintCallable, Category = "Teste")
+	void TesteComBlueprint(AActor* Boss);
+
+	//---------------------------------
 
 	UFUNCTION(BlueprintCallable, Category = "Approach")
 	void ExecutionEnemy();

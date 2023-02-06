@@ -16,9 +16,11 @@
 #include "Kismet/KismetArrayLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PrimeiroGame/PrimeiroGame.h"
-#include "PrimeiroGame/Personagens/InimigoPadrao/InimigoPadrao1.h"
+#include "PrimeiroGame/Personagens/Enemy/InimigoPadrao/InimigoPadrao1.h"
 #include "UI/RadialMenu.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+
+#include "PrimeiroGame/Personagens/Boss/Nyra/BossNyra.h"
 
 // Sets default values
 AProtagonista::AProtagonista()
@@ -666,7 +668,6 @@ void AProtagonista::ApproachEnemyFinished()
 	PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1, FName("ExecutionBack"));
 }
 
-
 void AProtagonista::MoveCameraTeleportFinished()
 {
 	ArriveTeleportMoviment();
@@ -776,32 +777,6 @@ void AProtagonista::SpecialAtack()
 	}
 }
 
-void AProtagonista::Teste()
-{
-	//if (RadialWheel == nullptr)
-	//{
-	//	RadialWheel = Cast<URadialMenu>(CreateWidget(GetWorld(), RadialWheelClass));
-	//	if (IsValid(RadialWheel))
-	//	{
-	//		RadialWheel->AddToViewport();
-	//		PlayerController->SetShowMouseCursor(true);
-	//		PlayerController->SetIgnoreLookInput(true);
-	//		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(PlayerController, RadialWheel, EMouseLockMode::DoNotLock, false);
-	//		GetWorldTimerManager().SetTimer(TimerHandlerWheelSpecial, this, &AProtagonista::RestoreBalance, 0.2f, true, 3.f);
-	//	}
-	//}
-	//else
-	//{
-	//	
-	//}
-	if (InimigoCampoVisao)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("focadp"));
-		InimigoCampoVisao->AtackPlayer();
-	}
-	UE_LOG(LogTemp, Warning, TEXT("saiu"));
-}
-
 void AProtagonista::AirTeleporPosition(FHitResult Bateu)
 {
 	CameraEnd = Bateu.Location;
@@ -838,4 +813,36 @@ void AProtagonista::AirMoveCameraTeleportFinished(FVector Localizacao)
 	SetActorLocation(Localizacao);
 	PlayAnimMontage(ArrayMontage[EplayerMontages::EPAirAtack], 1, FName("AirAtackEnd"));
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+}
+
+void AProtagonista::Teste()
+{
+	//if (RadialWheel == nullptr)
+	//{
+	//	RadialWheel = Cast<URadialMenu>(CreateWidget(GetWorld(), RadialWheelClass));
+	//	if (IsValid(RadialWheel))
+	//	{
+	//		RadialWheel->AddToViewport();
+	//		PlayerController->SetShowMouseCursor(true);
+	//		PlayerController->SetIgnoreLookInput(true);
+	//		UWidgetBlueprintLibrary::SetInputMode_GameAndUIEx(PlayerController, RadialWheel, EMouseLockMode::DoNotLock, false);
+	//		GetWorldTimerManager().SetTimer(TimerHandlerWheelSpecial, this, &AProtagonista::RestoreBalance, 0.2f, true, 3.f);
+	//	}
+	//}
+	//else
+	//{
+	//	
+	//}
+	//if (InimigoCampoVisao)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("focadp"));
+	//	InimigoCampoVisao->AtackPlayer();
+	//}
+
+	UE_LOG(LogTemp, Warning, TEXT("saiu"));
+}
+
+void AProtagonista::TesteComBlueprint(AActor* Boss)
+{
+	Cast<ABossNyra>(Boss)->TesteMethod();
 }

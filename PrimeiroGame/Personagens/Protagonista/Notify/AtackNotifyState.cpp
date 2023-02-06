@@ -3,7 +3,7 @@
 
 #include "AtackNotifyState.h"
 
-#include "PrimeiroGame/Personagens/Inimigo.h"
+#include "PrimeiroGame/Personagens/Enemy/Inimigo.h"
 #include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
 
 void UAtackNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration)
