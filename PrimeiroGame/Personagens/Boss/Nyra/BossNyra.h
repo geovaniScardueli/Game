@@ -3,14 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "PrimeiroGame/Personagens/Enemy/Inimigo.h"
 #include "BossNyra.generated.h"
 
 class APrimeiroGame;
 class APathToPlayer;
 
+UENUM()
+enum BossMontages
+{
+	BHit, BAtack, BParry
+};
+
 UCLASS()
-class PRIMEIROGAME_API ABossNyra : public ACharacter
+class PRIMEIROGAME_API ABossNyra : public AInimigo
 {
 	GENERATED_BODY()
 
@@ -25,6 +31,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
 	TSubclassOf<APathToPlayer> PathPlayerClass;
 
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
+	TArray<UAnimMontage*> ArrayMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dependencia Fonte")
+	class UCapsuleComponent* CapsuleWeapon;
+
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
+	float Damage = 10;
+
+	UPROPERTY()
+	class ABossAIController* BossAIControlle;
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "RunSpecialAtack")
 	void RunSpecialAtack();
 
@@ -38,17 +56,36 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
 	UFUNCTION()
 	void TesteMethod();
+	
+	UFUNCTION()
+	void BossTakeHit(const int16 DamageTake, const float StaminaDamage, int16 animation);
+
+	UFUNCTION()
+	void EnableDisableOverlapWeapon1(const bool Enable);
+
+	UFUNCTION()
+	void EnableDisableOverlapWeapon2(const bool Enable);
+
+	UFUNCTION()
+	void ResetAllStatus();
+
+	virtual void AtackPlayer() override;
+	virtual void ChangeBlackboarValue(const FName Description, bool Val) override;
+	virtual void ParryAnimation(float Val, FVector LocationPlayer) override;
 
 private:
 	UPROPERTY()
 	APathToPlayer* PathPlayer = nullptr;
 
 	UPROPERTY()
-	APrimeiroGame* GameMode = nullptr;
+	TArray<FName> Hits = {TEXT("Hit1"),TEXT("Hit2") ,TEXT("Hit3") };
 
 	UFUNCTION()
-	void SpecialAtack();
+	void BossSpecialAtack();
+
+	UFUNCTION()
+	void EnableDisableOverBody(const bool Enable);
+
 };

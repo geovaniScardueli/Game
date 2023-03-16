@@ -22,6 +22,7 @@
 
 #include "PrimeiroGame/Personagens/Boss/Nyra/BossNyra.h"
 
+
 // Sets default values
 AProtagonista::AProtagonista()
 {
@@ -72,6 +73,8 @@ void AProtagonista::BeginPlay()
 	BoxExecution->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnEnterExecutionMode);
 	BoxExecution->OnComponentEndOverlap.AddDynamic(this, &AProtagonista::OnEXitExecutionMode);
 	CapsuleWeapon->OnComponentBeginOverlap.AddDynamic(this, &AProtagonista::OnAtack);
+
+	GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
 }
 
 // Called every frame
@@ -193,7 +196,7 @@ void AProtagonista::Atacar()
 		}
 		 
 		//ChangeMovementStatus(false);
-		if (InimigoCampoVisao)
+		if (InimigoCampoVisao && InimigoCampoVisao->ActorHasTag("DefaultEnemy"))
 		{
 			if (InimigoCampoVisao->GetStamina() == 100.f)
 			{
@@ -243,8 +246,6 @@ void AProtagonista::Atacar()
 		{
 			StartSequenceAtack();
 		}
-
-		 
 	}
 }
 
@@ -287,9 +288,13 @@ void AProtagonista::StartSequenceAtack()
 void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AInimigo* Enemy = Cast<AInimigo>(OtherActor))
+	if (ABossNyra* Boss = Cast<ABossNyra>(OtherActor))
 	{
-		int32 Block = Enemy->TakeHit(this, AtackPower, AtackStaminaBreak, IndexAtack);
+		Boss->BossTakeHit(AtackPower, AtackStaminaBreak, IndexAtack);
+	} 
+	else if (AInimigo* Enemy = Cast<AInimigo>(OtherActor))
+	{
+		const int32 Block = Enemy->TakeHit(this, AtackPower, AtackStaminaBreak, IndexAtack);
 		if (Enemy->GetStamina() == 100.f)
 		{
 			ChangeAtackStatus(true);
@@ -304,7 +309,7 @@ void AProtagonista::OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 		}
 		else
 		{
-			Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode())->PlaySoundsWord(GetActorLocation(), 1);
+			GameMode->PlaySoundsWord(GetActorLocation(), 1);
 		}
 
 	}
@@ -542,9 +547,30 @@ void AProtagonista::OnParryMoment(UPrimitiveComponent* OverlappedComp, AActor* O
 void AProtagonista::OnTakeHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AInimigo* Inimigo = Cast<AInimigo>(OtherActor))
+	if (bIsPerfectParry) return;
+
+	if (ABossNyra* Boss = Cast<ABossNyra>(OtherActor))
 	{
-		APrimeiroGame* GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (bIsInDefensePosition && InimigoCampoVisao)
+		{
+			ControlBalance(20);
+			return;
+		}
+		bIsInParryTime = false;
+		ControlBalance(5);
+		GameMode->AtualizarVidaPlayer(VidaAtual -= 10);
+		if (EquilibrioAtual == 100)
+		{
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPExecution], 1.f, TEXT("BalanceOut"));
+		}
+		else
+		{
+			PlayAnimMontage(ArrayMontage[EplayerMontages::EPHit], 1.f, TEXT("TakeHit"));
+
+		}
+	}
+	else if (AInimigo* Inimigo = Cast<AInimigo>(OtherActor))
+	{
 		if (bIsInDefensePosition && InimigoCampoVisao)
 		{
 			ControlBalance(20);
@@ -567,7 +593,6 @@ void AProtagonista::OnTakeHit(UPrimitiveComponent* OverlappedComp, AActor* Other
 
 void AProtagonista::LevouPorrada(const bool Front)
 {
-	APrimeiroGame* GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->AtualizarVidaPlayer(VidaAtual -= 5);
 	ControlBalance(5);
 	if (Front)
@@ -586,7 +611,6 @@ void AProtagonista::ControlBalance(int32 Val)
 		LaunchCharacter(GetActorForwardVector() * 200.f * -1, true, false);
 		PlayAnimMontage(ArrayMontage[EplayerMontages::EPDefense], 1.f, TEXT("BalanceOut"));
 	}
-	APrimeiroGame* GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->AtualizarEquilibrioPlayer(EquilibrioAtual);
 	GetWorldTimerManager().SetTimer(TimerHandlerBalance, this, &AProtagonista::RestoreBalance, 0.2f, true, 3.f);
 }
@@ -599,7 +623,6 @@ void AProtagonista::RestoreBalance()
 		return;
 	}
 	EquilibrioAtual -= 5;
-	APrimeiroGame* GameMode = Cast<APrimeiroGame>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->AtualizarEquilibrioPlayer(EquilibrioAtual);
 }
 
@@ -632,6 +655,11 @@ void AProtagonista::OnEnterExecutionMode(UPrimitiveComponent* OverlappedComp, AA
 		{
 			Inimigo->ChangeExecuteMode(1.f);
 		}
+	}
+	else if (ABossNyra* Boss = Cast<ABossNyra>(OtherActor))
+	{
+		//Sempre em primeiro
+		InimigoCampoVisao = Boss;
 	}
 }
 
@@ -688,11 +716,10 @@ void AProtagonista::MoveCamera()
 void AProtagonista::TeleportMoviment()
 {
 	if (!bIsAtackEnable) return;
-	APrimeiroGame* GameWord = Cast<APrimeiroGame>(GetWorld()->GetAuthGameMode());
 
-	if (!GameWord->GetLocalMovimentacao().IsZero()) {
+	if (!GameMode->GetLocalMovimentacao().IsZero()) {
 		FVector OwnerDirection = Camera->GetForwardVector();
-		FVector ActorDirection = GameWord->GetLocalMovimentacao() - Camera->GetComponentLocation();
+		FVector ActorDirection = GameMode->GetLocalMovimentacao() - Camera->GetComponentLocation();
 		// Normalize vectors
 		OwnerDirection.Normalize();
 		ActorDirection.Normalize();
@@ -705,7 +732,7 @@ void AProtagonista::TeleportMoviment()
 			ChangeRotator(false);
 			ChangeAtackStatus(false);
 			bIsInTeleportMoviment = true;
-			FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameWord->GetLocalMovimentacao());
+			FRotator Rotacao = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameMode->GetLocalMovimentacao());
 			Rotacao.Pitch = 0.f;
 			Rotacao.Roll = 0.f;
 			SetActorRotation(Rotacao);

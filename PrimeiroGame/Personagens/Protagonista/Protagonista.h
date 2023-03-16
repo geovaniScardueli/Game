@@ -43,25 +43,25 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Camera)
 	class UBoxComponent* BoxTarget; 
 	
-	UPROPERTY(EditAnywhere, Category = "Anim Montage hit")
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	TArray<UAnimMontage*> ArrayMontage;
 
-	UPROPERTY(EditAnywhere, Category = "GameProp")
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	int32 AtackPower = 10;
 
-	UPROPERTY(EditAnywhere, Category = "GameProp")
-	int32 AtackStaminaBreak = 10;
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
+	int32 AtackStaminaBreak = 25;
 
-	UPROPERTY(EditAnywhere, Category = "GameProp")
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	int32 ParryStaminaBreak = 10;
 
-	UPROPERTY(EditAnywhere, Category = "Spaw pro")
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	TSubclassOf<AActor> SwordBlueprintClass;
 
-	UPROPERTY(EditAnywhere, Category = "UI")
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	TSubclassOf<UUserWidget> RadialWheelClass;
 
-	UPROPERTY(VisibleInstanceOnly, Category = "UI")
+	UPROPERTY(VisibleInstanceOnly, Category = "dependencia fonte")
 	class URadialMenu* RadialWheel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
@@ -230,6 +230,8 @@ private:
 	UPROPERTY()
 	FVector CameraEnd;
 	UPROPERTY()
+	class APrimeiroGame* GameMode;
+	UPROPERTY()
 	TMap<int32, FName> AtackSequences = {
 		{0, TEXT("AtackSequence")},
 		{1, TEXT("SecondAtack")},
@@ -318,5 +320,3 @@ private:
 	
 	
 };
-
-

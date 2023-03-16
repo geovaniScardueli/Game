@@ -92,7 +92,7 @@ public:
 	virtual void PhysicsWeapon() {};
 
 	UFUNCTION()
-	void ParryAnimation(float Val, FVector LocationPlayer);
+	virtual void ParryAnimation(float Val, FVector LocationPlayer);
 
 	UFUNCTION()
 	void ChangeExecuteMode(float Val) { MeshValue = Val; OnExecuteMode(); }
