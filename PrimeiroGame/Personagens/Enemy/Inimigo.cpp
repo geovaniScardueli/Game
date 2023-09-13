@@ -15,6 +15,7 @@
 #include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "InimigoPadrao/Head/DefaulEnemyHead.h"
+#include "PrimeiroGame/Personagens/Damage/Damage.h"
 
 // Sets default values
 AInimigo::AInimigo()
@@ -76,7 +77,7 @@ void AInimigo::Tick(float DeltaTime)
 	}
 }
 
-int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation)
+int AInimigo::TakeHit(const int32 Power)
 {
 	//FString Comp = OtherComp->GetName();
 	//if (Comp.Equals(TEXT("CapsuleWeapon")))
@@ -87,10 +88,12 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 	ChangeBlackboarValue("CanMov", false);
 	//ChangeBlackboarValue("ViuPlayer", false);
 
-	if (bSeePlayer &&  BlockAtack > UKismetMathLibrary::RandomInteger(100))
+	const int32 Rnumber = UKismetMathLibrary::RandomInteger(100);
+
+	if (bSeePlayer &&  BlockAtack > Rnumber)
 	{
 		BlockAtack = 10;
-		PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("ParryPlayer"));
+		PlayAnimMontage(Montages[AnimMontages::EHit], 1, FName("ParryPlayer"));
 		ChangeBlackboarValue("CanMov", true);
 		ChangeBlackboarValue("AtacarPlayer", true);
 		ChangeBlackboarValue("IsRangeAtack", true);
@@ -98,30 +101,25 @@ int AInimigo::TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int a
 		return 1;
 	}
 	BlockAtack*=2;
-	LoseHealth(Damage);
+	LoseHealth(UDamage::CalcaleteHealth(Power, Defense));
 	if (VidaAtual <= 0)
 	{
 		EnemyAIControlle->DisableBehaviorTree();
-		PlayAnimMontage(Montages[EEnemyMontages::EEDie], 1, FName("Die"));
+		PlayAnimMontage(Montages[AnimMontages::EDie], 1, FName("Die"));
 		DisableInDead();
 		return 0;
 	}
-	ChangeStamina(DamageStamina);
+	ChangeStamina(UDamage::CalcaletePosture(Power, Defense));
 	if (Stamina == 100.f)
 	{
 		bSeePlayer = false;
-		PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("StaminaOver"));
-		if (Cast<AProtagonista>(OtherActor)->ValidarEnemigoCampoVisao(this)) ChangeExecuteMode(1.f);
-	} else
+		PlayAnimMontage(Montages[AnimMontages::EHit], 1, FName("StaminaOver"));
+		//if (Cast<AProtagonista>(OtherActor)->ValidarEnemigoCampoVisao(this)) ChangeExecuteMode(1.f);
+	}
+	else
 	{
-		if (animation == 0)
-		{
-			PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("TakeFistHit"));
-		}
-		else
-		{
-			PlayAnimMontage(Montages[EEnemyMontages::EEHit], 1, FName("TakeSecondHit"));
-		}
+		const FName HitName = Rnumber > 50 ? FName("TakeFistHit") : FName("TakeSecondHit");
+		PlayAnimMontage(Montages[AnimMontages::EHit], 1, HitName);
 	}
 	return 0;
 }
@@ -131,7 +129,7 @@ void AInimigo::TakeExecutionPerfectParry(FVector FowardPlayer)
 	bSeePlayer = false;
 	EnemyAIControlle->DisableBehaviorTree();
 	//SetActorLocation(GetActorLocation() + (GetActorForwardVector() * 150 *-1));
-	PlayAnimMontage(Montages[EEnemyMontages::EEExecution], 1, FName("TakeExecutionParry"));
+	PlayAnimMontage(Montages[AnimMontages::EExecution], 1, FName("TakeExecutionParry"));
 	LoseHealth(999);
 	DisableInDead();
 }
@@ -183,11 +181,11 @@ void AInimigo::ParryAnimation(float Val, FVector LocationPlayer)
 		SetActorRotation(Rotacao);
 		//SetActorLocation(LocationPlayer * 200 * -1);
 		//LaunchCharacter(FVector(0, 620.f, 170.f), false, false);
-		PlayAnimMontage(Montages[EEnemyMontages::EEExecution], 1, FName("TakeExecutinAwait"));
+		PlayAnimMontage(Montages[AnimMontages::EExecution], 1, FName("TakeExecutinAwait"));
 	} 
 	else
 	{
-		PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("Parry"));
+		PlayAnimMontage(Montages[AnimMontages::EAtack], 1, FName("Parry"));
 	}
 }
 
@@ -201,17 +199,18 @@ void AInimigo::OnTakeExecution(bool bIsInFront, AActor* Player2)
 	{
 		SetActorRotation(Player2->GetActorRotation());
 	}
-	PlayAnimMontage(Montages[EEnemyMontages::EEExecution], 1, bIsInFront ? FName("TakeExecutionFront") : FName("TakeExecution"));
+	PlayAnimMontage(Montages[AnimMontages::EExecution], 1, bIsInFront ? FName("TakeExecutionFront") : FName("TakeExecution"));
 	DisableInDead();
 }
 
 void AInimigo::ChangeStamina(float Val)
 {
+	//UE_LOG(LogTemp, Warning, TEXT("valor stamina %f"), Val);
 	Stamina += Val;
 	if (Stamina >= 100.f) Stamina = 100.f;
-	if (Stamina < 0.f) Stamina = 0.f;
 	ChangeVisibilityUI(true);
 	//EnemyDefaultWidget->AtualizaStamina(Stamina);
+	Cast<UInimigoPadraoWidget>(EnemyWidgetComp->GetUserWidgetObject())->AtualizaStamina(Stamina);
 }
 
 //jogar para cada classe especifica, 217 nullpointer
@@ -247,7 +246,7 @@ void AInimigo::SpecialAtack(FVector Location)
 	Rotacao.Roll = 0.f;
 	SetActorRotation(Rotacao);
 	GetController()->SetControlRotation(Rotacao);
-	PlayAnimMontage(Montages[EEnemyMontages::EESpecialAtack], 1, FName("SpecialAtack"));
+	PlayAnimMontage(Montages[AnimMontages::ESpecialAtack], 1, FName("SpecialAtack"));
 }
 
 void AInimigo::ChangeVisibilityUI(const bool Val)

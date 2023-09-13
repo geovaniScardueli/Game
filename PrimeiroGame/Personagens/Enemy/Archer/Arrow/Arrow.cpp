@@ -46,7 +46,7 @@ void AArrow::HitSomthing(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrim
 		{
 			if (AnguloPlayer < 75.f)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Osso: %s"), *Hit.BoneName.ToString());
+				//UE_LOG(LogTemp, Warning, TEXT("Osso: %s"), *Hit.BoneName.ToString());
 				BounceArrow();
 				return;
 			}
@@ -60,7 +60,6 @@ void AArrow::OnoVerlapBla(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 {
 	if (AProtagonista* Player = Cast<AProtagonista>(OtherActor))
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Bone: %s"), *FString(SweepResult.BoneName.ToString));
 		if (Player->IsInDefensePosition())
 		{
 			BounceArrow();

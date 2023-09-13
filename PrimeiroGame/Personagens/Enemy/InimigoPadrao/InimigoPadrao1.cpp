@@ -70,11 +70,11 @@ void AInimigoPadrao1::AtackPlayer()
 	{
 		if (FVector::Dist(GetActorLocation(), GetPlayer()->GetActorLocation()) < 100.f)
 		{
-			PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("CloseAtack"));
+			PlayAnimMontage(Montages[AnimMontages::EAtack], 1, FName("CloseAtack"));
 		}
 		else 
 		{
-			PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("AtackPlayer"));
+			PlayAnimMontage(Montages[AnimMontages::EAtack], 1, FName("AtackPlayer"));
 		}
 	}
 }

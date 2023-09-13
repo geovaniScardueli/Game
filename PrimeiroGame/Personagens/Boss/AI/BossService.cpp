@@ -6,6 +6,7 @@
 #include "PrimeiroGame/Personagens/Boss/AI/BossAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "PrimeiroGame/Personagens/Protagonista/Protagonista.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UBossService::UBossService(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -24,7 +25,14 @@ void UBossService::OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* No
 
 	auto const Cont = Cast<ABossAIController>(OwnerComp.GetAIOwner());
 	ABossNyra* Boss = Cast<ABossNyra>(Cont->GetPawn());
-	float Distance = FVector::Dist(Boss->GetActorLocation(), Boss->GetPlayer()->GetActorLocation());
+	const float Distance = FVector::Dist(Boss->GetActorLocation(), Boss->GetPlayer()->GetActorLocation());
+
+	if (Distance > 800.f && UKismetMathLibrary::RandomIntegerInRange(1, 100) > 30)
+	{
+		Boss->DischargeSingleClone();
+		Cont->GetBlackboardComponent()->SetValueAsBool(TEXT("CantMove"), false);
+		return;
+	}
 
 	if (Distance > 500.f)
 	{

@@ -31,7 +31,7 @@ void AArcher::ChangeBlackboarValue(const FName Description, bool Val)
 
 void AArcher::AtackPlayer()
 {
-	PlayAnimMontage(Montages[EEnemyMontages::EEAtack], 1, FName("AtackPlayer"));
+	PlayAnimMontage(Montages[AnimMontages::EAtack], 1, FName("AtackPlayer"));
 }
 
 void AArcher::VisibilityArrow(const bool bShow)

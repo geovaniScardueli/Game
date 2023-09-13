@@ -12,20 +12,21 @@
 
 #include "Inimigo.generated.h"
 
-UENUM()
-enum EEnemyMontages
-{
-	EEAtack, EEHit, EEDie, EEExecution, EESpecialAtack
-};
 
 UCLASS()
 class PRIMEIROGAME_API AInimigo : public ACharacter
 {
+
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	AInimigo();
+
+	enum AnimMontages
+	{
+		EHit, EAtack, EParry, EExecParry, EDash, EDie, EExecution, ESpecialAtack, ECreateClone, EGrab
+	};
 
 protected:
 	// Called when the game starts or when spawned
@@ -37,11 +38,15 @@ protected:
 	UPROPERTY()
 	int32 BlockAtack = 10;
 	UPROPERTY()
+	int32 AtackSequence = 0;
+	UPROPERTY()
 	bool bSeePlayer = false;
 	UPROPERTY()
 	APrimeiroGame* GameMode = nullptr;
 	UPROPERTY()
 	bool bCanMove = true;
+	UPROPERTY()
+	bool bAtackFury = false;
 	UPROPERTY()
 	class AEnemyAIController* EnemyAIControlle;
 
@@ -53,6 +58,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	class UInimigoPadraoWidget* EnemyDefaultWidget;
+
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
+	int32 AtackPower = 10;
+
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
+	int32 Defense = 10;
+
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
+	int32 DefensePosture = 10;
 
 	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
 	TSubclassOf<UUserWidget> EnemyDefaultWidgetClass;
@@ -95,6 +109,9 @@ public:
 	virtual void ParryAnimation(float Val, FVector LocationPlayer);
 
 	UFUNCTION()
+	virtual void ThrowGrab() {};
+
+	UFUNCTION()
 	void ChangeExecuteMode(float Val) { MeshValue = Val; OnExecuteMode(); }
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Execution")
@@ -104,10 +121,16 @@ public:
 	void OnTakeExecution(bool bIsInFront, AActor* Player);
 
 	UFUNCTION()
-	float GetStamina() { return Stamina; }
+	FORCEINLINE float GetStamina() { return Stamina; }
 
 	UFUNCTION()
-	bool IsSeePlayer() { return bSeePlayer; }
+	FORCEINLINE int32 GetAtackPower() { return AtackPower; }
+
+	UFUNCTION()
+	FORCEINLINE int32 GetAtackSequence() { return AtackSequence; }
+
+	UFUNCTION()
+	FORCEINLINE bool IsSeePlayer() { return bSeePlayer; }
 
 	UFUNCTION()
 	void SetSeePlayer(bool Val) { bSeePlayer = Val; }
@@ -116,7 +139,7 @@ public:
 	void ChangeStamina(float Val);
 
 	UFUNCTION()
-	int32 TakeHit(AActor* OtherActor, int Damage, float DamageStamina, int animation = 0);
+	virtual int32 TakeHit(const int32 Power);
 
 	UFUNCTION()
 	void TakeExecutionPerfectParry(FVector FowardPlayer);

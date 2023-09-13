@@ -10,16 +10,15 @@
 
 #include "Protagonista.generated.h"
 
-UENUM()
-enum EplayerMontages
-{
-	EPAtack, EPDefense, EPHit, EPExecution, EPMoviment, EPSpecialAtack, EPAirAtack
-};
-
 class UProtagonistaAninInstance;
+class UPhysicalAnimationComponent;
 UCLASS()
 class PRIMEIROGAME_API AProtagonista : public ACharacter
 {
+	enum AnimMontages
+	{
+		EPAtack, EPDefense, EPHit, EPExecution, EPMoviment, EPSpecialAtack, EPAirAtack, EPParyAtack, EPGrab, EStandUp
+	};
 
 	GENERATED_BODY()
 
@@ -41,13 +40,22 @@ protected:
 	class UArrowComponent* Flecha;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Camera)
-	class UBoxComponent* BoxTarget; 
+	class UBoxComponent* BoxTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
+	class UPhysicalAnimationComponent* PhysicalAnimationComponent;
 	
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	TArray<UAnimMontage*> ArrayMontage;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	int32 AtackPower = 10;
+
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
+	int32 Defense = 10;
+
+	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
+	int32 DefensePosture = 10;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	int32 AtackStaminaBreak = 25;
@@ -138,16 +146,22 @@ public:
 	void ResetPerfectPArry();
 
 	UFUNCTION()
-	FORCEINLINE void ChangeAtackStatus(bool Val) { bIsAtackEnable = Val; }
+	FORCEINLINE	bool IsAtackEnabled() { return bIsAtackEnable; }
 
 	UFUNCTION()
-	FORCEINLINE void ChangeMovementStatus(bool Val) { bIsMovementEnable = Val; }
+		FORCEINLINE void ChangeAtackStatus(bool Val) { if (Val)UE_LOG(LogTemp, Warning, TEXT("true")) else UE_LOG(LogTemp, Warning, TEXT("false")); bIsAtackEnable = Val; }
 
+	//UFUNCTION()
+	//FORCEINLINE void ChangeMovementStatus(bool Val) { bIsMovementEnable = Val; }
+
+	UFUNCTION()
+	FORCEINLINE void ChangeParryDashStatus(bool Val) { bParryDashEnable = Val; }
+	
 	UFUNCTION()
 	FORCEINLINE void ChangeRotator(bool Val) { bIsRotateEnable = Val; }
 
 	UFUNCTION()
-	FORCEINLINE void ChangeIndexAtackSequence() { IndexAtack++; if (IndexAtack > 2) ResetIndexAtackSequence(); }
+	void ChangeIndexAtackSequence();
 
 	UFUNCTION()
 	FORCEINLINE void ResetIndexAtackSequence() { IndexAtack = 0; }
@@ -165,7 +179,7 @@ public:
 	void VerifyEnemyLockIsDead();
 
 	UFUNCTION()
-	void ResetAllStatus();
+	void ResetStatus(const FName Status);
 
 	UFUNCTION()
 	void SetRunState(bool Val);
@@ -188,6 +202,9 @@ public:
 	UFUNCTION()
 	void LevouPorrada(const bool Front);
 
+	UFUNCTION()
+	void LaunchPlayer(const FVector Direction);
+
 private:
 	UPROPERTY()
 	class UProtagonistaAninInstance* ProtagonistaAninInstance;
@@ -207,8 +224,10 @@ private:
 	float AnguloInimigo = -1.f;
 	UPROPERTY()
 	bool bIsPerfectParry = false;
+	//UPROPERTY()
+	//bool bIsMovementEnable = true;
 	UPROPERTY()
-	bool bIsMovementEnable = true;
+	bool bParryDashEnable = true;
 	UPROPERTY()
 	bool bIsRotateEnable = true;
 	UPROPERTY()
@@ -218,9 +237,13 @@ private:
 	UPROPERTY()
 	bool bIsInTeleportMoviment = false;
 	UPROPERTY()
+	bool bIsFaceDown = false;
+	UPROPERTY()
 	FTimerHandle TimerHandlerBalance;
 	UPROPERTY()
 	FTimerHandle TimerHandlerWheelSpecial;
+	UPROPERTY()
+	FTimerHandle TimerHandlerGetUp;
 	UPROPERTY()
 	APlayerController* PlayerController;
 	UPROPERTY()
@@ -233,10 +256,16 @@ private:
 	class APrimeiroGame* GameMode;
 	UPROPERTY()
 	TMap<int32, FName> AtackSequences = {
-		{0, TEXT("AtackSequence")},
+		{0, TEXT("FirstAtack")},
 		{1, TEXT("SecondAtack")},
-		{2, TEXT("ThirtAtack")},
-		{3, TEXT("AtackPerfectParry")}
+		{2, TEXT("ThirdAtack")},
+		{3, TEXT("FourAtack")},
+		{4, TEXT("AtackPerfectParry")}
+	};
+	UPROPERTY()
+	TMap<int32, FName> HitSequences = {
+		{0, TEXT("Hit1")},
+		{1, TEXT("Hit2")}
 	};
 
 	UFUNCTION()
@@ -291,6 +320,15 @@ private:
 	void Teste();
 
 	UFUNCTION()
+	void GetUpTemp();
+
+	UFUNCTION()
+	void GetUpTemp2();
+
+	UFUNCTION()
+	void GetUpTemp3();
+
+	UFUNCTION()
 	void OpenSkillWhell();
 
 	UFUNCTION()
@@ -309,10 +347,16 @@ private:
 	void OnTakeHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 								UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
+	void OnTakeHitEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
 	void OnEnterExecutionMode(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 								UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnEXitExecutionMode(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+		void OnEXitWapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
 	void OnAtack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

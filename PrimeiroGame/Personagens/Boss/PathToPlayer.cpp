@@ -40,11 +40,17 @@ FRotator APathToPlayer::GetRotationAlongSpline(const float Value)
 	return Path->GetRotationAtDistanceAlongSpline(Value, ESplineCoordinateSpace::World);
 }
 
-void APathToPlayer::SetPathPLayer(const FVector StartLocation, const AProtagonista* Player)
+void APathToPlayer::SetPathPLayer(const FVector StartLocation, const AProtagonista* Player, const int32 Dir)
 {
 	const FVector PlayerLocation = Player->GetActorLocation();
 	Path->SetLocationAtSplinePoint(0, StartLocation, ESplineCoordinateSpace::World, false);
 	Path->SetLocationAtSplinePoint(2, PlayerLocation, ESplineCoordinateSpace::World, true);
-	const FVector Half = (StartLocation + PlayerLocation) / 2 + FVector(200.f, 0.f, 0.f);
-	Path->SetLocationAtSplinePoint(1, Half, ESplineCoordinateSpace::World, true);
+	//const float Half = (Path->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::Local).X + Path->GetLocationAtSplinePoint(2, ESplineCoordinateSpace::Local).X) / 2;
+
+	Path->SetLocationAtSplinePoint(1, FVector(200.f, Direction[Dir], 0.f), ESplineCoordinateSpace::Local, true);
+}
+
+void APathToPlayer::UpdatePath(const AProtagonista* Player)
+{
+	Path->SetLocationAtSplinePoint(2, Player->GetActorLocation(), ESplineCoordinateSpace::World, true);
 }

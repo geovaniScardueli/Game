@@ -4,16 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "ResetAllStatusNotify.generated.h"
+#include "DischargeCloneNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UResetAllStatusNotify : public UAnimNotify
+class PRIMEIROGAME_API UDischargeCloneNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = AnimNotify)
+	FName IdSection;
+
+	virtual bool ShouldFireInEditor() override { return false; }
+
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference);
 };

@@ -23,7 +23,7 @@ void UAtackNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenc
 {
 	if (AProtagonista* Character = Cast<AProtagonista>(MeshComp->GetOwner()))
 	{
-		if (Character->GetCurrentMontage() && Character->GetCurrentMontage()->GetName().Equals("Atack_AM"))
+		if (Character->GetCurrentMontage() && Character->GetCurrentMontage()->GetName().Equals("AM_Atack"))
 		{
 			Character->ChangeIndexAtackSequence();
 		}

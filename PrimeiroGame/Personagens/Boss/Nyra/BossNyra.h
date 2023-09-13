@@ -8,16 +8,14 @@
 
 class APrimeiroGame;
 class APathToPlayer;
+class UNyraAnimInstance;
+class ABossNyraClone;
 
-UENUM()
-enum BossMontages
-{
-	BHit, BAtack, BParry
-};
 
 UCLASS()
 class PRIMEIROGAME_API ABossNyra : public AInimigo
 {
+
 	GENERATED_BODY()
 
 public:
@@ -31,14 +29,17 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
 	TSubclassOf<APathToPlayer> PathPlayerClass;
 
-	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
-	TArray<UAnimMontage*> ArrayMontage;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dependencia Fonte")
 	class UCapsuleComponent* CapsuleWeapon;
 
 	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
 	float Damage = 10;
+
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
+	TSubclassOf<AActor> Eye;
+
+	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
+	TSubclassOf<ABossNyraClone> CloneClass;
 
 	UPROPERTY()
 	class ABossAIController* BossAIControlle;
@@ -58,9 +59,6 @@ public:
 
 	UFUNCTION()
 	void TesteMethod();
-	
-	UFUNCTION()
-	void BossTakeHit(const int16 DamageTake, const float StaminaDamage, int16 animation);
 
 	UFUNCTION()
 	void EnableDisableOverlapWeapon1(const bool Enable);
@@ -71,21 +69,66 @@ public:
 	UFUNCTION()
 	void ResetAllStatus();
 
+	UFUNCTION()
+	void CheckAfterParry();
+
+	UFUNCTION()
+	FName GetMontageSection();
+
+	UFUNCTION()
+	void ChangeCapsuleWeapon(const FName Socket);
+
+	UFUNCTION()
+	int32 CheckWhatToDo();
+
+	UFUNCTION()
+	void CreateClone();
+
+	UFUNCTION()
+	void DischargeSingleClone();
+
+	UFUNCTION()
+	void Grab();
+
+	UFUNCTION()
+	void CreateCloneKick();
+
+	virtual void ThrowGrab() override;
 	virtual void AtackPlayer() override;
 	virtual void ChangeBlackboarValue(const FName Description, bool Val) override;
 	virtual void ParryAnimation(float Val, FVector LocationPlayer) override;
+	virtual int32 TakeHit(const int32 Power) override;
 
 private:
 	UPROPERTY()
 	APathToPlayer* PathPlayer = nullptr;
 
 	UPROPERTY()
-	TArray<FName> Hits = {TEXT("Hit1"),TEXT("Hit2") ,TEXT("Hit3") };
+	ABossNyraClone* Clone = nullptr;
+
+	UPROPERTY()
+	class UNyraAnimInstance* NyraAnimInstance;
+
+	UPROPERTY()
+	TArray<FName> Hits = {TEXT("Hit1"),TEXT("Hit2") ,TEXT("Hit3"), TEXT("Hit3") };
+
+	UPROPERTY()
+	int32 RNumber;
+
+	UPROPERTY()
+	AActor* LeftEye;
+
+	UPROPERTY()
+	AActor* RightEye;
+
+	UPROPERTY()
+	int32 CloneAtack = 1;
 
 	UFUNCTION()
 	void BossSpecialAtack();
 
 	UFUNCTION()
 	void EnableDisableOverBody(const bool Enable);
+
 
 };

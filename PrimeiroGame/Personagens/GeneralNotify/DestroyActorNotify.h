@@ -4,17 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "PerfectParryNotify.generated.h"
+#include "DestroyActorNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UPerfectParryNotify : public UAnimNotify
+class PRIMEIROGAME_API UDestroyActorNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 
-	
+protected:
+
+	virtual bool ShouldFireInEditor() override { return false; }
+
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 	

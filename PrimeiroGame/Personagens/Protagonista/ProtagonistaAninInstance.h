@@ -6,9 +6,8 @@
 #include "Animation/AnimInstance.h"
 #include "ProtagonistaAninInstance.generated.h"
 
-/**
- * 
- */
+class AProtagonista;
+
 UCLASS()
 class PRIMEIROGAME_API UProtagonistaAninInstance : public UAnimInstance
 {
@@ -16,6 +15,9 @@ class PRIMEIROGAME_API UProtagonistaAninInstance : public UAnimInstance
 
 private:
 	APawn* Owner;
+
+	UPROPERTY()
+	AProtagonista* PlayerCharacter;
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
@@ -32,6 +34,12 @@ public:
 	bool bIsRunning = false;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	FRotator RotacaoAtack;
+	UPROPERTY(BlueprintReadOnly, Category = Generic)
+	bool bIsAtack = false;
+	UPROPERTY(BlueprintReadOnly, Category = Generic)
+	bool bIsRagDoll = false;
+	UPROPERTY(BlueprintReadOnly, Category = Generic)
+	bool bIsFaceDown = false;
 
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
@@ -50,4 +58,10 @@ public:
 
 	UFUNCTION()
 	void SetRotationAtack(FRotator Val) { RotacaoAtack = Val; }
+
+	UFUNCTION()
+	void SetRagDoll(bool Val) { bIsRagDoll = Val; }
+
+	UFUNCTION()
+	void SetFaceDown(bool Val) { bIsFaceDown = Val; }
 };

@@ -18,7 +18,7 @@ public:
 	APathToPlayer();
 
 	UFUNCTION()
-	void SetPathPLayer(const FVector StartLocation, const AProtagonista* Player);
+	void SetPathPLayer(const FVector StartLocation, const AProtagonista* Player, const int32 Dir);
 
 protected:
 	// Called when the game starts or when spawned
@@ -39,6 +39,17 @@ public:
 
 	UFUNCTION()
 	FRotator GetRotationAlongSpline(const float Value);
+
+	UFUNCTION()
+	void UpdatePath(const AProtagonista* Player);
+
+private:
+	UPROPERTY()
+	TMap<int32, float> Direction = {
+		{1, -100.f},
+		{2, 100.f},
+		{3, 0.f}
+	};
 
 
 };

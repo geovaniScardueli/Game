@@ -22,7 +22,7 @@ void UProtagonistaAninInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	if (Owner->IsA(AProtagonista::StaticClass()))
 	{
-		AProtagonista* PlayerCharacter = Cast<AProtagonista>(Owner);
+		PlayerCharacter = Cast<AProtagonista>(Owner);
 		if (PlayerCharacter)
 		{
 			bIsInAir = PlayerCharacter->GetMovementComponent()->IsFalling();
