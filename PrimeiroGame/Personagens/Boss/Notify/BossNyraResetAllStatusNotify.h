@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "ResetAllStatusNotify.generated.h"
+#include "BossNyraResetAllStatusNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UResetAllStatusNotify : public UAnimNotify
+class PRIMEIROGAME_API UBossNyraResetAllStatusNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 	

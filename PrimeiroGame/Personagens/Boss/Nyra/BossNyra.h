@@ -67,7 +67,7 @@ public:
 	void EnableDisableOverlapWeapon2(const bool Enable);
 
 	UFUNCTION()
-	void ResetAllStatus();
+	void ResetStatus(const FName Status);
 
 	UFUNCTION()
 	void CheckAfterParry();
@@ -93,11 +93,21 @@ public:
 	UFUNCTION()
 	void CreateCloneKick();
 
+	UFUNCTION()
+	void CheckToTeleport();
+
+	UFUNCTION()
+	void StartTeleport();
+
 	virtual void ThrowGrab() override;
 	virtual void AtackPlayer() override;
 	virtual void ChangeBlackboarValue(const FName Description, bool Val) override;
 	virtual void ParryAnimation(float Val, FVector LocationPlayer) override;
-	virtual int32 TakeHit(const int32 Power) override;
+	virtual int32 TakeHit(const int32 Power, const int32 Atack) override;
+	virtual void EnableDisableOverBody(const bool Enable) override;
+	virtual void StartAttack() override;
+	virtual void StopAttack() override;
+	virtual void ResetAllStatus() override;
 
 private:
 	UPROPERTY()
@@ -113,6 +123,9 @@ private:
 	TArray<FName> Hits = {TEXT("Hit1"),TEXT("Hit2") ,TEXT("Hit3"), TEXT("Hit3") };
 
 	UPROPERTY()
+	TArray<FName> DefenseAnim = { FName("Defense1"),FName("Defense2") ,FName("Defense3"), FName("Defense4") };
+
+	UPROPERTY()
 	int32 RNumber;
 
 	UPROPERTY()
@@ -124,11 +137,19 @@ private:
 	UPROPERTY()
 	int32 CloneAtack = 1;
 
+	UPROPERTY()
+	FTimerHandle TimerEnableOverlap;
+
+	UPROPERTY()
+	bool bFirstFace = true;
+
 	UFUNCTION()
 	void BossSpecialAtack();
 
 	UFUNCTION()
-	void EnableDisableOverBody(const bool Enable);
+	void EnableOverlap();
 
+	UFUNCTION()
+	FVector GetLocationTeleport(const int16 Val);
 
 };

@@ -4,19 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AirAtackNotify.generated.h"
+#include "BossNyraStartAtackNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UAirAtackNotify : public UAnimNotify
+class PRIMEIROGAME_API UBossNyraStartAtackNotify : public UAnimNotify
 {
 	GENERATED_BODY()
-protected:
-	virtual bool ShouldFireInEditor() override { return false; }
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
-
+	
 };

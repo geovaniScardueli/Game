@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AirAtackNotify.generated.h"
+#include "PlayerEndAttackNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UAirAtackNotify : public UAnimNotify
+class PRIMEIROGAME_API UPlayerEndAttackNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 protected:
@@ -18,5 +18,5 @@ protected:
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
-
+	
 };

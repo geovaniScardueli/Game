@@ -6,10 +6,11 @@
 
 int32 UDamage::CalcaleteHealth(const int32 Power, const int32 Defense, const int32 AddPower)
 {
-	return Power + AddPower - Defense;
+	return Power - Defense;
 }
 
 int32 UDamage::CalcaletePosture(const int32 Power, const int32 Defense, const int32 AddDefense)
 {
-	return Power - Defense + AddDefense;
+	//todo isso aqui ta muito estranho
+	return Power - Defense;
 }

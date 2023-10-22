@@ -25,7 +25,7 @@ public:
 
 	enum AnimMontages
 	{
-		EHit, EAtack, EParry, EExecParry, EDash, EDie, EExecution, ESpecialAtack, ECreateClone, EGrab
+		EHit, EAtack, EParry, EDefense, EDash, EDie, EExecution, ESpecialAtack, ECreateClone, EGrab, EComboAtack, ETeleport
 	};
 
 protected:
@@ -46,7 +46,7 @@ protected:
 	UPROPERTY()
 	bool bCanMove = true;
 	UPROPERTY()
-	bool bAtackFury = false;
+	bool bUnstoppableAttack = false;
 	UPROPERTY()
 	class AEnemyAIController* EnemyAIControlle;
 
@@ -139,7 +139,10 @@ public:
 	void ChangeStamina(float Val);
 
 	UFUNCTION()
-	virtual int32 TakeHit(const int32 Power);
+	virtual int32 TakeHit(const int32 Power, const int32 Atack);
+
+	UFUNCTION()
+	virtual void EnableDisableOverBody(const bool Enable) {};
 
 	UFUNCTION()
 	void TakeExecutionPerfectParry(FVector FowardPlayer);
@@ -164,6 +167,15 @@ public:
 
 	UFUNCTION()
 	virtual void SensePlayer() {};
+
+	UFUNCTION()
+	virtual void StartAttack() {};
+
+	UFUNCTION()
+	virtual void StopAttack() {};
+
+	UFUNCTION()
+	virtual void ResetAllStatus() {};
 
 	UFUNCTION()
 	void SpecialAtack(FVector Location);

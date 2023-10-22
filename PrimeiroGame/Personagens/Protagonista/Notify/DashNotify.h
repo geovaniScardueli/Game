@@ -13,6 +13,8 @@ UCLASS()
 class PRIMEIROGAME_API UDashNotify : public UAnimNotify
 {
 	GENERATED_BODY()
+protected:
+	virtual bool ShouldFireInEditor() override { return false; }
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;

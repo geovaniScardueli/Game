@@ -7,6 +7,7 @@
 
 void UPlayerWidget::AtualizarVida(int32 Atual)
 {
+
 	HealthBar->SetPercent(Atual / 100.f);
 	FNumberFormattingOptions Opts;
 	Opts.SetMaximumFractionalDigits(0);

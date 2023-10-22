@@ -17,15 +17,15 @@ UFindActorLocaltion::UFindActorLocaltion(FObjectInitializer const& object_initia
 EBTNodeResult::Type UFindActorLocaltion::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	auto const cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
-	AEnemyAIController* Cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
-	AInimigo* Inimigo = Cast<AInimigo>(Cont->GetPawn());
+	const AEnemyAIController* Cont = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
+	const AInimigo* Inimigo = Cast<AInimigo>(Cont->GetPawn());
 	
 	//Inimigo->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(Inimigo->GetActorLocation(),
 	//	UGameplayStatics::GetPlayerPawn(GetWorld(), 0)->GetActorLocation()));
-	FVector WordLocation = Inimigo->GetActorLocation();
+	const FVector WordLocation = Inimigo->GetActorLocation();
 	FVector Direcao;
 	
-	int32 valor = UKismetMathLibrary::RandomInteger(3);
+	const int32 valor = UKismetMathLibrary::RandomInteger(3);
 	const float Distance = 150.f;
 	switch (valor)
 	{

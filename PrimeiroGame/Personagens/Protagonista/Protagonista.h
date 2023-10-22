@@ -17,7 +17,7 @@ class PRIMEIROGAME_API AProtagonista : public ACharacter
 {
 	enum AnimMontages
 	{
-		EPAtack, EPDefense, EPHit, EPExecution, EPMoviment, EPSpecialAtack, EPAirAtack, EPParyAtack, EPGrab, EStandUp
+		EPAtack, EPDefense, EPHit, EPExecution, EPMoviment, EPSpecialAtack, EPAirAtack, EPParyAtack, EPGrab, EStandUp, EHeal
 	};
 
 	GENERATED_BODY()
@@ -49,19 +49,19 @@ protected:
 	TArray<UAnimMontage*> ArrayMontage;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
-	int32 AtackPower = 10;
+	int16 AtackPower = 10;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
-	int32 Defense = 10;
+	int16 Defense = 10;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
-	int32 DefensePosture = 10;
+	int16 DefensePosture = 10;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
-	int32 AtackStaminaBreak = 25;
+	int16 AtackStaminaBreak = 25;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
-	int32 ParryStaminaBreak = 10;
+	int16 ParryStaminaBreak = 10;
 
 	UPROPERTY(EditAnywhere, Category = "dependencia fonte")
 	TSubclassOf<AActor> SwordBlueprintClass;
@@ -149,7 +149,7 @@ public:
 	FORCEINLINE	bool IsAtackEnabled() { return bIsAtackEnable; }
 
 	UFUNCTION()
-		FORCEINLINE void ChangeAtackStatus(bool Val) { if (Val)UE_LOG(LogTemp, Warning, TEXT("true")) else UE_LOG(LogTemp, Warning, TEXT("false")); bIsAtackEnable = Val; }
+		FORCEINLINE void ChangeAtackStatus(bool Val) { bIsAtackEnable = Val; }
 
 	//UFUNCTION()
 	//FORCEINLINE void ChangeMovementStatus(bool Val) { bIsMovementEnable = Val; }
@@ -164,7 +164,7 @@ public:
 	void ChangeIndexAtackSequence();
 
 	UFUNCTION()
-	FORCEINLINE void ResetIndexAtackSequence() { IndexAtack = 0; }
+	void ResetIndexAtackSequence();
 
 	UFUNCTION()
 	void ArriveTeleportMoviment();
@@ -217,9 +217,11 @@ private:
 	UPROPERTY()
 	bool bIsInDefensePosition = false;
 	UPROPERTY()
-	int32 VidaAtual = 100;
+	int16 VidaAtual = 100;
 	UPROPERTY()
-	int32 EquilibrioAtual = 0;
+	int16 MaxHealth = 100;
+	UPROPERTY()
+	int16 EquilibrioAtual = 0;
 	UPROPERTY()
 	float AnguloInimigo = -1.f;
 	UPROPERTY()
@@ -233,7 +235,7 @@ private:
 	UPROPERTY()
 	bool bIsAtackEnable = true;
 	UPROPERTY()
-	int32 IndexAtack = 0;
+	int16 IndexAtack = 0;
 	UPROPERTY()
 	bool bIsInTeleportMoviment = false;
 	UPROPERTY()
@@ -255,7 +257,7 @@ private:
 	UPROPERTY()
 	class APrimeiroGame* GameMode;
 	UPROPERTY()
-	TMap<int32, FName> AtackSequences = {
+	TMap<int16, FName> AtackSequences = {
 		{0, TEXT("FirstAtack")},
 		{1, TEXT("SecondAtack")},
 		{2, TEXT("ThirdAtack")},
@@ -263,7 +265,7 @@ private:
 		{4, TEXT("AtackPerfectParry")}
 	};
 	UPROPERTY()
-	TMap<int32, FName> HitSequences = {
+	TMap<int16, FName> HitSequences = {
 		{0, TEXT("Hit1")},
 		{1, TEXT("Hit2")}
 	};
@@ -339,6 +341,15 @@ private:
 
 	UFUNCTION()
 	void SpecialAtack();
+
+	UFUNCTION()
+	void UseItem();
+
+	UFUNCTION()
+	void ApplyEfectItem(const FName Item);
+
+	UFUNCTION()
+	void AtualizarVidaPlayer();
 
 	UFUNCTION()
 	void OnParryMoment(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,

@@ -3,13 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "PrimeiroGame/Personagens/Enemy/Inimigo.h"
 #include "BossNyraClone.generated.h"
 
 class APathToPlayer;
 
 UCLASS()
-class PRIMEIROGAME_API ABossNyraClone : public ACharacter
+class PRIMEIROGAME_API ABossNyraClone : public AInimigo
 {
 	GENERATED_BODY()
 
@@ -25,7 +25,10 @@ protected:
 	TSubclassOf<APathToPlayer> PathPlayerClass;
 
 	UPROPERTY(EditAnywhere, Category = "Dependencia Fonte")
-	UAnimMontage* CloneMontage;
+	TArray<UAnimMontage*> CloneMontages;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dependencia Fonte")
+	class UCapsuleComponent* CapsuleWeapon;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "RunSpecialAtack")
 	void RunSpecialAtack();
@@ -39,25 +42,30 @@ protected:
 public:	
 
 	UFUNCTION()
-	void Atack(APrimeiroGame* GameMode);
+	void Atack();
 
 	UFUNCTION()
-	void KickAtack();
+	void CloseAttack(const FName Val);
 
 	UFUNCTION()
 	void DestroyClone();
+
+	virtual void StartAttack() override;
+	virtual void StopAttack() override;
 
 private:
 	UPROPERTY()
 	APathToPlayer* PathPlayer = nullptr;
 
 	UPROPERTY()
-	APrimeiroGame* GameMode;
-
-	UPROPERTY()
 	FTimerHandle TimerHandlerDestroye;
 
 	UFUNCTION()
 	void RealyDestroy();
+
+	enum CloneMontages
+	{
+		Discharge, Attack
+	};
 
 };

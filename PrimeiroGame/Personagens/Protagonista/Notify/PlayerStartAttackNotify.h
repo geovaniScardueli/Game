@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "EndAtackNotify.generated.h"
+#include "PlayerStartAttackNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRIMEIROGAME_API UEndAtackNotify : public UAnimNotify
+class PRIMEIROGAME_API UPlayerStartAttackNotify : public UAnimNotify
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+	
 };

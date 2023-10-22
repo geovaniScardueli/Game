@@ -16,7 +16,7 @@ class PRIMEIROGAME_API UPlayerResetStatusNotify : public UAnimNotify
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, AdvancedDisplay, Category = AnimNotify)
-		FName IdSection;
+	FName IdSection;
 
 	virtual bool ShouldFireInEditor() override { return false; }
 

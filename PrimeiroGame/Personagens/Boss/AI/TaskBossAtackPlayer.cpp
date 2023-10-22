@@ -17,8 +17,10 @@ EBTNodeResult::Type UTaskBossAtackPlayer::ExecuteTask(UBehaviorTreeComponent& Ow
 	APawn* Pawn = Cont->GetPawn();
 	Cast<ABossNyra>(Pawn)->AtackPlayer();
 
+	Cont->GetBlackboardComponent()->SetValueAsBool(TEXT("CanMov"), false);
 	Cont->GetBlackboardComponent()->SetValueAsBool(TEXT("AtackPlayer"), false);
 	Cont->GetBlackboardComponent()->SetValueAsBool(TEXT("MoveToPLayer"), false);
+	
 
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Succeeded;

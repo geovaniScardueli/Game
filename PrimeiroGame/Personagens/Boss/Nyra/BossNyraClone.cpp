@@ -5,6 +5,7 @@
 #include "PrimeiroGame/PrimeiroGame.h"
 #include "PrimeiroGame/Personagens/Boss/PathToPlayer.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/CapsuleComponent.h"
 
 // Sets default values
 ABossNyraClone::ABossNyraClone()
@@ -12,17 +13,22 @@ ABossNyraClone::ABossNyraClone()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
+	CapsuleWeapon = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleWeapon"));
+	CapsuleWeapon->SetupAttachment(GetMesh());
 }
 
 // Called when the game starts or when spawned
 void ABossNyraClone::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CapsuleWeapon->AttachToComponent(GetMesh(),
+		FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true),
+		FName("DEF-Sword1Socket"));
 }
 
-void ABossNyraClone::Atack(APrimeiroGame* Mode)
+void ABossNyraClone::Atack()
 {
-	GameMode = Mode;
 	PathPlayer = GetWorld()->SpawnActor<APathToPlayer>(PathPlayerClass, GetActorTransform());
 	const int32 Direction = UKismetMathLibrary::RandomIntegerInRange(1, 3);
 	FName Temp;
@@ -33,7 +39,7 @@ void ABossNyraClone::Atack(APrimeiroGame* Mode)
 	else
 		Temp = FName("CloneCenter");
 	PathPlayer->SetPathPLayer(GetActorLocation(), GameMode->GetPlayer(), Direction);
-	PlayAnimMontage(CloneMontage, 1.f, Temp);
+	PlayAnimMontage(CloneMontages[CloneMontages::Discharge], 1.f, Temp);
 	RunSpecialAtack();
 }
 
@@ -50,17 +56,27 @@ void ABossNyraClone::RunSpecialAtackFinished()
 	PathPlayer->Destroy();
 }
 
-void ABossNyraClone::KickAtack()
+void ABossNyraClone::CloseAttack(const FName Val)
 {
-	PlayAnimMontage(CloneMontage, 1.f, "CloneKick");
+	PlayAnimMontage(CloneMontages[CloneMontages::Attack], 1.f, Val);
 }
 
 void ABossNyraClone::DestroyClone()
 {
-	StopAnimMontage(CloneMontage);
+	//StopAnimMontage(CloneMontage);
 	//pecisa desse timer para nao dar erro
 	GetMesh()->SetVisibility(false);
 	GetWorldTimerManager().SetTimer(TimerHandlerDestroye, this, &ABossNyraClone::RealyDestroy, 0.1f, false, 0.5f);
+}
+
+void ABossNyraClone::StartAttack()
+{
+	CapsuleWeapon->SetGenerateOverlapEvents(true);
+}
+
+void ABossNyraClone::StopAttack()
+{
+	CapsuleWeapon->SetGenerateOverlapEvents(false);
 }
 
 void ABossNyraClone::RealyDestroy()

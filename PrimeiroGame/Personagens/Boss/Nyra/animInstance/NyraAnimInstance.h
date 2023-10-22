@@ -19,6 +19,8 @@ protected:
 	bool GoToRunState;
 	UPROPERTY(BlueprintReadOnly, Category = Generic)
 	float Velocidade;
+	UPROPERTY(BlueprintReadOnly, Category = Generic)
+	float Rotacao;
 	
 public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

@@ -67,7 +67,7 @@ void AInimigo::ComecarMoverFinished()
 void AInimigo::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (bSeePlayer)
+	if (bSeePlayer && false)
 	{
 		FRotator Rotacao = FRotator(0.f, UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GameMode->GetPlayer()->GetActorLocation()).Yaw, 0.f);
 		Rotacao.Pitch = 0.f;
@@ -77,7 +77,7 @@ void AInimigo::Tick(float DeltaTime)
 	}
 }
 
-int AInimigo::TakeHit(const int32 Power)
+int AInimigo::TakeHit(const int32 Power, const int32 Atack)
 {
 	//FString Comp = OtherComp->GetName();
 	//if (Comp.Equals(TEXT("CapsuleWeapon")))
